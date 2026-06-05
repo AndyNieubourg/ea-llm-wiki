@@ -1,0 +1,343 @@
+summaries:
+  count_pages: values.length
+  newest_mtime: values.max()
+  oldest_mtime: values.min()
+filters:
+  and:
+    - file.ext == "md"
+    - or:
+        - file.hasTag("domain:strategy")
+        - file.hasTag("domain:enterprise-architecture")
+        - file.hasTag("domain:business-architecture")
+        - file.hasTag("domain:business-to-it")
+        - file.hasTag("domain:software-architecture")
+        - file.hasTag("domain:solution-delivery")
+        - file.hasTag("domain:data")
+        - file.hasTag("domain:tech-infra-cloud")
+        - file.hasTag("domain:exponential-tech-innovation")
+        - file.hasTag("domain:security")
+        - file.hasTag("domain:governance")
+        - file.hasTag("domain:organizational-change")
+formulas:
+  entity_type: if(file.folder.contains("concepts"), "concept", if(file.folder.contains("sources"), "source", if(file.folder.contains("frameworks"), "framework", if(file.folder.contains("analyses"), "analysis", if(file.folder.contains("cases"), "case", if(file.folder.contains("questions"), "question", if(file.folder.contains("artifacts/lessons"), "lesson", if(file.folder.contains("artifacts/exercises"), "exercise", if(file.folder.contains("artifacts/projects"), "project-artifact", if(file.folder.contains("inbox"), "inbox", "other"))))))))))
+  is_strategy: if(file.hasTag("domain:strategy"), 1, 0)
+  is_ea: if(file.hasTag("domain:enterprise-architecture"), 1, 0)
+  is_biz_arch: if(file.hasTag("domain:business-architecture"), 1, 0)
+  is_biz_to_it: if(file.hasTag("domain:business-to-it"), 1, 0)
+  is_sw_arch: if(file.hasTag("domain:software-architecture"), 1, 0)
+  is_sol_delivery: if(file.hasTag("domain:solution-delivery"), 1, 0)
+  is_data: if(file.hasTag("domain:data"), 1, 0)
+  is_tech_infra: if(file.hasTag("domain:tech-infra-cloud"), 1, 0)
+  is_exp_tech: if(file.hasTag("domain:exponential-tech-innovation"), 1, 0)
+  is_security: if(file.hasTag("domain:security"), 1, 0)
+  is_governance: if(file.hasTag("domain:governance"), 1, 0)
+  is_org_change: if(file.hasTag("domain:organizational-change"), 1, 0)
+  domain_tag_count: is_strategy + is_ea + is_biz_arch + is_biz_to_it + is_sw_arch + is_sol_delivery + is_data + is_tech_infra + is_exp_tech + is_security + is_governance + is_org_change
+  is_bridge: if(domain_tag_count >= 2, "bridge", "single-domain")
+  days_since_updated: (now() - file.mtime).days
+  days_since_created: (now() - file.ctime).days
+  confidence_display: if(confidence, confidence, "unmarked")
+  question_status: if(status, status, "")
+  has_crystallised: if(relationships, if(relationships.crystallized-into, "yes", if(relationships.synthesised-into, "yes", "no")), "no")
+properties:
+  file.name:
+    displayName: Page
+  file.folder:
+    displayName: Folder
+  formula.entity_type:
+    displayName: Type
+  formula.domain_tag_count:
+    displayName: "# domains"
+  formula.is_bridge:
+    displayName: Cross-domain
+  formula.days_since_updated:
+    displayName: Days since updated
+  formula.confidence_display:
+    displayName: Confidence
+  formula.has_crystallised:
+    displayName: Crystallised?
+  formula.question_status:
+    displayName: Q status
+views:
+  - type: table
+    name: All domain-tagged pages
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.is_bridge
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+      - formula.days_since_updated
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
+  - type: table
+    name: Cross-domain bridges (≥2 domain tags)
+    filters:
+      and:
+        - formula.domain_tag_count >= 2
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - file.tags
+      - formula.confidence_display
+      - file.mtime
+    summaries:
+      file.name: count_pages
+  - type: table
+    name: Multi-domain bridges (≥3 domain tags)
+    filters:
+      and:
+        - formula.domain_tag_count >= 3
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - file.tags
+      - file.mtime
+    summaries:
+      file.name: count_pages
+  - type: table
+    name: Stale pages (>180 days)
+    filters:
+      and:
+        - formula.days_since_updated > 180
+    order:
+      - file.name
+      - formula.entity_type
+      - file.tags
+      - formula.days_since_updated
+    summaries:
+      file.name: count_pages
+  - type: table
+    name: Concepts not crystallised
+    filters:
+      and:
+        - formula.entity_type == "concept"
+        - formula.has_crystallised == "no"
+    order:
+      - file.name
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - file.mtime
+    summaries:
+      file.name: count_pages
+  - type: table
+    name: 1. strategy
+    filters:
+      and:
+        - is_strategy == 1
+    groupBy:
+      property: formula.entity_type
+      direction: ASC
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
+  - type: table
+    name: 2. enterprise-architecture
+    filters:
+      and:
+        - is_ea == 1
+    groupBy:
+      property: formula.entity_type
+      direction: ASC
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
+  - type: table
+    name: 3. business-architecture
+    filters:
+      and:
+        - is_biz_arch == 1
+    groupBy:
+      property: formula.entity_type
+      direction: ASC
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
+  - type: table
+    name: 4. business-to-it
+    filters:
+      and:
+        - is_biz_to_it == 1
+    groupBy:
+      property: formula.entity_type
+      direction: ASC
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
+  - type: table
+    name: 5. software-architecture
+    filters:
+      and:
+        - is_sw_arch == 1
+    groupBy:
+      property: formula.entity_type
+      direction: ASC
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
+  - type: table
+    name: 6. solution-delivery
+    filters:
+      and:
+        - is_sol_delivery == 1
+    groupBy:
+      property: formula.entity_type
+      direction: ASC
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
+  - type: table
+    name: 7. data
+    filters:
+      and:
+        - is_data == 1
+    groupBy:
+      property: formula.entity_type
+      direction: ASC
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
+  - type: table
+    name: 8. tech-infra-cloud
+    filters:
+      and:
+        - is_tech_infra == 1
+    groupBy:
+      property: formula.entity_type
+      direction: ASC
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
+  - type: table
+    name: 9. exponential-tech-innovation
+    filters:
+      and:
+        - is_exp_tech == 1
+    groupBy:
+      property: formula.entity_type
+      direction: ASC
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
+  - type: table
+    name: 10. security
+    filters:
+      and:
+        - is_security == 1
+    groupBy:
+      property: formula.entity_type
+      direction: ASC
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
+  - type: table
+    name: 11. governance
+    filters:
+      and:
+        - is_governance == 1
+    groupBy:
+      property: formula.entity_type
+      direction: ASC
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
+  - type: table
+    name: 12. organizational-change
+    filters:
+      and:
+        - is_org_change == 1
+    groupBy:
+      property: formula.entity_type
+      direction: ASC
+    order:
+      - file.name
+      - formula.entity_type
+      - formula.domain_tag_count
+      - formula.confidence_display
+      - formula.has_crystallised
+      - file.mtime
+    summaries:
+      file.name: count_pages
+      file.mtime: newest_mtime
