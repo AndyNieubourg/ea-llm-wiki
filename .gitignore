@@ -1,0 +1,23 @@
+.DS_Store
+
+# Claude Code per-project state — ignored, except for shareable skills and agents
+.claude/*
+!.claude/skills/
+!.claude/agents/
+
+# Source documents — read-only per CLAUDE.md, kept locally but not versioned
+raw/*
+!raw/.gitkeep
+
+# Obsidian UI state (flips every session; other .obsidian/*.json stay tracked)
+wiki/.obsidian/workspace.json
+
+# Smart Connections runtime embeddings store + local settings — machine-specific,
+# regenerated on demand. The plugin CODE (main.js/manifest.json/styles.css) IS tracked.
+wiki/.smart-env/
+wiki/.obsidian/plugins/smart-connections/data.json
+
+# Stray .obsidian at repo root — the real vault is wiki/, so this would only
+# exist if someone accidentally opened llm-wiki/ as a vault instead of wiki/.
+# Anchored with leading slash so it does NOT match wiki/.obsidian/.
+/.obsidian/
