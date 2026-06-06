@@ -86,7 +86,7 @@ do not run a code gate on prose or vice versa:
   findings.
 
 ### 3b. Adversarial review (the part that matters)
-Before reviewing, invoke `Skill(anthropic-skills:critical-reviewer)` and conduct
+Before reviewing, invoke `Skill(critical-reviewer)` and conduct
 this whole step under it — specifically its **Pattern B** (critiquing your own
 prior output).
 The work on this branch is your own; the default failure mode is rubber-stamping
