@@ -55,8 +55,22 @@ Browse the wiki in [Obsidian](https://obsidian.md/) — the `wiki/` folder is an
 
 Clone, install a small set of prerequisites plus two Obsidian community plugins, open in Obsidian, and everything renders. On macOS the path of least friction is via [Homebrew](https://brew.sh/). (The plugins and the PlantUML JAR are **not** committed to this repo — they are third-party code under their own licenses; you install them once, as below.)
 
-> [!tip] Automated path — `./setup.sh`
-> After cloning, run **`./setup.sh`** from the repo root. It installs the Homebrew prerequisites, the OpenJDK symlink, the PlantUML JAR, and the two community plugins, idempotently. Run **`./setup.sh --check`** first to see what's already present (changes nothing). Flags: `--skip-brew`, `--skip-plugins`, `--skip-mermaid`, `--help`. The steps below are the manual equivalent if you'd rather do it by hand. You still finish in the Obsidian GUI: turn off Restricted Mode and enable the two plugins (step 6).
+> [!tip] Automated path — `setup.sh` (macOS) / `setup.ps1` (Windows)
+> After cloning, run the setup script from the repo root. It installs the prerequisites, the PlantUML JAR, and the two community plugins, idempotently. Run with `--check` first to see what's already present (changes nothing).
+>
+> **macOS / Linux:**
+> ```bash
+> ./setup.sh --check     # then: ./setup.sh
+> ```
+> Flags: `--skip-brew`, `--skip-plugins`, `--skip-mermaid`, `--help`.
+>
+> **Windows (PowerShell):**
+> ```powershell
+> .\setup.ps1 --check    # then: .\setup.ps1
+> ```
+> Uses `winget` for prerequisites. If the script is blocked, run `powershell -ExecutionPolicy Bypass -File .\setup.ps1`. Flags: `--skip-winget`, `--skip-plugins`, `--skip-mermaid`, `--help`.
+>
+> The numbered steps below are the manual macOS equivalent if you'd rather do it by hand. On every platform you still finish in the Obsidian GUI: turn off Restricted Mode and enable the two plugins (step 6).
 
 ### 1. Install the prerequisites
 
