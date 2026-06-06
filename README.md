@@ -53,7 +53,7 @@ Browse the wiki in [Obsidian](https://obsidian.md/) — the `wiki/` folder is an
 
 ## Local setup
 
-The wiki is built to be portable: clone, install a small set of prerequisites, open in Obsidian, and everything renders without further config. On macOS the path of least friction is via [Homebrew](https://brew.sh/).
+Clone, install a small set of prerequisites plus two Obsidian community plugins, open in Obsidian, and everything renders. On macOS the path of least friction is via [Homebrew](https://brew.sh/). (The plugins and the PlantUML JAR are **not** committed to this repo — they are third-party code under their own licenses; you install them once, as below.)
 
 ### 1. Install the prerequisites
 
@@ -64,7 +64,7 @@ brew install git gh openjdk graphviz
 
 - **Obsidian** — the vault browser (the repo is an Obsidian vault under `wiki/`).
 - **git / gh** — version control and PR lifecycle (the `pr-manager` agent uses `gh`).
-- **OpenJDK** — runs the bundled PlantUML JAR for ArchiMate / C4 diagrams.
+- **OpenJDK** — runs the PlantUML JAR for ArchiMate / C4 diagrams (you download the JAR once in step 6).
 - **GraphViz** — required for ArchiMate / class / ER / activity diagrams (sequence diagrams skip it).
 
 ### 2. Link OpenJDK so macOS can find it
@@ -100,17 +100,31 @@ cd ea-llm-wiki
 open -a Obsidian wiki/      # vault root is wiki/, NOT the repo root
 ```
 
-The vault root is **`wiki/`**. The `.obsidian/` config (PlantUML plugin + JAR, Smart Connections, core-plugin selections) lives there. Opening the repo root creates a fresh empty vault and misses everything. On first open, Obsidian prompts to **trust author and enable community plugins** — accept, and the PlantUML plugin loads with the bundled JAR (no public-server round-trip). See [`wiki/.obsidian/plantuml/README.md`](wiki/.obsidian/plantuml/README.md) for PlantUML notes.
+The vault root is **`wiki/`**. The `.obsidian/` config (which plugins to enable, the PlantUML SVG/local-JAR settings, core-plugin selections) lives there. Opening the repo root creates a fresh empty vault and misses everything. On first open, Obsidian prompts to **trust author and enable community plugins** — accept. The plugins themselves are not in the repo, so install them next.
+
+### 6. Install the two community plugins and the PlantUML JAR
+
+The scaffold commits its plugin *settings* but not the plugin *code* (third-party, under their own licenses). Install once:
+
+```bash
+# PlantUML JAR (~28 MB, GPLv3) — download to the path data.json already points at:
+LATEST=$(gh api repos/plantuml/plantuml/releases/latest -q '.tag_name')
+curl -sSL -o wiki/.obsidian/plantuml/plantuml.jar \
+  "https://github.com/plantuml/plantuml/releases/download/${LATEST}/plantuml-${LATEST#v}.jar"
+```
+
+Then in Obsidian: **Settings → Community plugins → Browse**, and install **PlantUML** (by joethei) and **Smart Connections** (by brianpetro). They are already listed in `community-plugins.json`, so once installed they enable with the committed settings (SVG output, local-JAR path, no public-server round-trip). Restart Obsidian. See [`wiki/.obsidian/plantuml/README.md`](wiki/.obsidian/plantuml/README.md) for the JDK symlink and troubleshooting.
 
 ### What ships in the repo
 
-Everything below comes with the clone:
-
-- **PlantUML JAR + `obsidian-plantuml` plugin** under `wiki/.obsidian/` — local-JAR rendering with public-server fallback.
-- **Smart Connections plugin** for local-embedding semantic search (no API key).
-- **Obsidian core-plugin selections** (Bases, Daily Notes, Properties, …).
+- **Obsidian config** under `wiki/.obsidian/` — which plugins to enable (`community-plugins.json`), PlantUML settings (`obsidian-plantuml/data.json`), core-plugin selections (Bases, Daily Notes, Properties, …). The plugin *code* and the PlantUML JAR are **not** committed — see step 6.
 - **Claude Code skills** under `.claude/skills/` and the **`pr-manager` agent** under `.claude/agents/`.
 - **All authoring conventions** in `CLAUDE.md`.
+
+### What you install separately (third-party, own licenses)
+
+- **PlantUML JAR** — GPLv3; download per step 6.
+- **`obsidian-plantuml` and Smart Connections plugins** — from Obsidian's community plugin browser.
 
 ### What stays per-machine (gitignored)
 
@@ -137,6 +151,6 @@ Built on [Andrej Karpathy's LLM wiki pattern](https://gist.github.com/karpathy/1
 
 Copyright 2026 Andy Nieubourg. Licensed under the **Apache License, Version 2.0** — see [`LICENSE`](LICENSE).
 
-This license covers the scaffold itself: the operating manual (`CLAUDE.md`), the workflows, the directory structure, the domain taxonomy, the skills under `.claude/skills/`, the `pr-manager` agent, the voice-guide *template*, and the Obsidian config authored here. It does **not** cover the bundled third-party components (the PlantUML JAR under GPL, and the `obsidian-plantuml` / Smart Connections plugins), which retain their own licenses — see [`NOTICE`](NOTICE).
+This license covers the scaffold itself: the operating manual (`CLAUDE.md`), the workflows, the directory structure, the domain taxonomy, the skills under `.claude/skills/`, the `pr-manager` agent, the voice-guide *template*, and the Obsidian config authored here. It does **not** cover the third-party tools the wiki depends on (the PlantUML JAR under GPL, and the `obsidian-plantuml` / Smart Connections plugins) — those are installed separately, not redistributed here, and retain their own licenses. See [`NOTICE`](NOTICE).
 
 Any wiki *content* you create after running `/init-wiki` (your `wiki/` pages, attachments, and personalised voice guide) is yours and is not part of this licensed scaffold. Keep that content in a **separate, private** repository if it derives from client work — `raw/` is gitignored precisely so source documents never enter version control, but derived pages can still carry confidential material.
