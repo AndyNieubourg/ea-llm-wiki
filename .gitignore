@@ -13,9 +13,23 @@ raw/*
 wiki/.obsidian/workspace.json
 
 # Smart Connections runtime embeddings store + local settings — machine-specific,
-# regenerated on demand. The plugin CODE (main.js/manifest.json/styles.css) IS tracked.
+# regenerated on demand.
 wiki/.smart-env/
 wiki/.obsidian/plugins/smart-connections/data.json
+
+# Third-party tool CODE is NOT redistributed — install it yourself (see README
+# "Local setup"). The scaffold keeps only its own small config so the right
+# settings apply once you install: community-plugins.json (which plugins to
+# enable) and obsidian-plantuml/data.json (SVG default + local-JAR path).
+#  - PlantUML JAR: 28 MB, GPLv3 — download per wiki/.obsidian/plantuml/README.md
+#  - Obsidian community plugins: install from within Obsidian (Browse → enable)
+wiki/.obsidian/plantuml/plantuml.jar
+wiki/.obsidian/plugins/obsidian-plantuml/main.js
+wiki/.obsidian/plugins/obsidian-plantuml/manifest.json
+wiki/.obsidian/plugins/obsidian-plantuml/styles.css
+wiki/.obsidian/plugins/smart-connections/main.js
+wiki/.obsidian/plugins/smart-connections/manifest.json
+wiki/.obsidian/plugins/smart-connections/styles.css
 
 # Stray .obsidian at repo root — the real vault is wiki/, so this would only
 # exist if someone accidentally opened llm-wiki/ as a vault instead of wiki/.
