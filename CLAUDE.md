@@ -222,7 +222,7 @@ For non-ArchiMate PlantUML (sequence diagrams, C4 with the `C4-PlantUML` stdlib,
 
 **Default processor: SVG.** The `obsidian-plantuml` plugin is configured to render SVG by default — scales cleanly at any zoom, better for ArchiMate diagrams with text labels. PNG and ASCII are available per-block by using `​```plantuml-png` or `​```plantuml-ascii` instead of plain `​```plantuml`.
 
-**Rendering: local JAR.** The plugin renders via the JAR at `wiki/.obsidian/plantuml/plantuml.jar` (GPL distribution; not committed — downloaded once per `wiki/.obsidian/plantuml/README.md`). Java and GraphViz are required system-side — install once with `brew install openjdk graphviz` plus the `openjdk` symlink (see `wiki/.obsidian/plantuml/README.md`). Local rendering is fast and offline; the public PlantUML server (`plantuml.com`) remains configured as automatic fallback if the local chain fails.
+**Rendering: local JAR.** The JAR (`wiki/.obsidian/plantuml/plantuml.jar`, GPL distribution) is not committed — download it once per `wiki/.obsidian/plantuml/README.md`. Local rendering is fast and offline. (Prerequisites and fallback are stated in track 2 above.)
 
 **Visual verification (Mermaid / PlantUML) — part of the way of working.** A diagram is not *done* until it has been confirmed to render. A malformed Mermaid block or a failed PlantUML chain shows as an error box only at view time — a text diff never catches it, and the page looks fine in the editor. So whenever I author or materially edit a Mermaid or PlantUML diagram, verify it renders before treating the page as finished. There are two methods; **prefer Method A in a `claude/*` worktree** (the usual case), Method B for interactive work in the live vault.
 
@@ -434,7 +434,7 @@ Three provenances, all committed-or-installed honestly (see [`NOTICE`](NOTICE)):
 | `deep-recon` | `/deep-recon <topic>`, "brainstorm deeply", "stress-test this idea" | Multi-agent reconnaissance for `query` rumination and pre-essay scoping. Voice-anchored to [[voice-guide]]. Only the final deliverable lands in the wiki, routed to its earned home by content type (essay → `analyses/`, update → in-place on the relevant page, half-formed → `inbox/`) — same routing as any `query` output. Intermediate agent files are tool scratch, not wiki content; see `SKILL.md` for the staging convention. |
 
 > [!note] Publishing to Confluence
-> Earlier foundations bundled a `confluence-edit` skill. It is **not** part of this scaffold (it is Anthropic-bundled and not universally useful). If you want to publish wiki material to Confluence, add it in your own wiki via `/plugin` (the Anthropic `anthropic-skills:confluence-edit`), and re-anchor its prose to [[voice-guide]].
+> To publish wiki material to Confluence, add the Anthropic `anthropic-skills:confluence-edit` skill via `/plugin` and re-anchor its prose to [[voice-guide]]. It is not bundled with this scaffold.
 
 ### `obsidian-cli` — conditional gate
 
@@ -497,7 +497,7 @@ Never push to `main` directly. Integration into `main` happens through a PR and 
 
 ### Default shipping path — the `pr-manager` agent
 
-**When a workflow unit (`ingest` / `capture` / `query` / `lint` / case write-up / etc.) is committed and ready, ship it via the `.claude/agents/pr-manager.md` subagent by default — proactively, without being asked.** Once a unit is done and committed, invoke pr-manager on your own (in the session that just created or edited the agent file, run the same lifecycle manually instead, since the subagent isn't invocable until the next session). It runs the full lifecycle — opens the PR, reviews it, resolves conflicts against `main`, and merges.
+**When a workflow unit (`ingest` / `capture` / `query` / `lint` / case write-up / etc.) is committed and ready, ship it via the `.claude/agents/pr-manager.md` subagent by default — proactively, without being asked.** Once a unit is done and committed, invoke pr-manager on your own. It runs the full lifecycle — opens the PR, reviews it, resolves conflicts against `main`, and merges. (The session that first creates or edits the agent file is the exception — see the Note below.)
 
 If the owner prefers a manual confirm-before-merge gate instead of full autonomy, that is set at init ({{SHIPPING_AUTONOMY}}); the agent still opens and reviews the PR but stops before merge. Absent that preference, treat a finished, committed unit as ready to ship. If you're genuinely unsure whether a unit is "done" (mid-task, half-formed, or the owner is clearly still iterating), wait — don't ship work in progress.
 
@@ -530,4 +530,4 @@ Note: the `pr-manager` agent only becomes invocable as a subagent in a session s
 - Prefer updating existing pages over creating new ones when content fits.
 - The wiki is a git repo of markdown — everything is versioned automatically.
 - Binary attachments under `wiki/attachments/` are committed normally. Keep individual images under ~500 KB and the overall attachments tree under ~500 MB. If you cross that, move to Git LFS — but don't pre-emptively set it up.
-- Default to the owner's locale conventions ({{LOCALE_DEFAULTS}}) where it matters.
+- Locale conventions: see Terminology discipline.
