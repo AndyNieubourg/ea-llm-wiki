@@ -3,9 +3,10 @@
 # setup.sh — one-shot local setup for the EA LLM Wiki foundation.
 #
 # Installs the prerequisites the wiki needs but does NOT commit (third-party
-# tools under their own licenses): the PlantUML JAR (GPLv3) and the
-# obsidian-plantuml / Smart Connections community plugins. The repo ships only
-# its own Obsidian config, so once these land the committed settings apply.
+# under their own licenses): the PlantUML JAR (GPLv3), the obsidian-plantuml /
+# Smart Connections community plugins, and the Obsidian Agent Skills from
+# kepano/obsidian-skills (MIT). The repo ships only its own config + its own
+# skills, so once these land the committed settings apply.
 #
 # Safe to re-run: every step checks before acting.
 #
@@ -14,6 +15,7 @@
 #   ./setup.sh --check      # report what's present/missing, install nothing
 #   ./setup.sh --skip-brew  # don't touch Homebrew packages (you manage them)
 #   ./setup.sh --skip-plugins   # skip the two community-plugin downloads
+#   ./setup.sh --skip-skills    # skip the kepano/obsidian-skills install
 #   ./setup.sh --skip-mermaid   # skip mermaid-cli (only needed for headless
 #                                 diagram checks in Claude Code worktrees)
 #   ./setup.sh -h | --help
@@ -26,6 +28,8 @@ set -euo pipefail
 PLANTUML_REPO="plantuml/plantuml"                      # GPLv3 distribution
 PLUGIN_PLANTUML_REPO="joethei/obsidian-plantuml"
 PLUGIN_SMART_REPO="brianpetro/obsidian-smart-connections"
+KEPANO_SKILLS_REPO="kepano/obsidian-skills"            # MIT — Obsidian Agent Skills
+KEPANO_SKILLS="obsidian-markdown obsidian-bases obsidian-cli json-canvas defuddle"
 
 # ---------------------------------------------------------------------------
 # Pretty logging
@@ -46,12 +50,13 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # ---------------------------------------------------------------------------
 # Args
 # ---------------------------------------------------------------------------
-CHECK=0; SKIP_BREW=0; SKIP_PLUGINS=0; SKIP_MERMAID=0
+CHECK=0; SKIP_BREW=0; SKIP_PLUGINS=0; SKIP_MERMAID=0; SKIP_SKILLS=0
 for arg in "$@"; do
   case "$arg" in
     --check)        CHECK=1 ;;
     --skip-brew)    SKIP_BREW=1 ;;
     --skip-plugins) SKIP_PLUGINS=1 ;;
+    --skip-skills)  SKIP_SKILLS=1 ;;
     --skip-mermaid) SKIP_MERMAID=1 ;;
     -h|--help)      grep '^#' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *)              die "unknown option: $arg (try --help)" ;;
@@ -67,6 +72,7 @@ OBS="wiki/.obsidian"
 [[ -d "$OBS" ]] || die "expected $OBS — run this from the repo root (where CLAUDE.md lives)."
 JAR="$OBS/plantuml/plantuml.jar"
 PLUGINS_DIR="$OBS/plugins"
+SKILLS_DIR=".claude/skills"
 
 IS_MAC=0; [[ "$(uname -s)" == "Darwin" ]] && IS_MAC=1
 
@@ -85,6 +91,9 @@ if [[ "$CHECK" -eq 1 ]]; then
     else
       miss "plugin $id not installed"
     fi
+  done
+  for s in $KEPANO_SKILLS; do
+    [[ -f "$SKILLS_DIR/$s/SKILL.md" ]] && ok "skill $s installed" || miss "skill $s not installed"
   done
   if [[ "$IS_MAC" -eq 1 ]]; then
     [[ -e /Library/Java/JavaVirtualMachines/openjdk.jdk ]] && ok "OpenJDK symlink present" || miss "OpenJDK symlink missing (GUI Java)"
@@ -192,7 +201,39 @@ else
 fi
 
 # ===========================================================================
-# 6. Verify + next steps
+# 6. Obsidian Agent Skills (kepano/obsidian-skills, MIT) — NOT redistributed
+#    here; cloned into .claude/skills/ (gitignored). The wiki's own skills
+#    (init-wiki, voice-interview, deep-recon) are committed and left untouched.
+# ===========================================================================
+if [[ "$SKIP_SKILLS" -eq 1 ]]; then
+  info "Obsidian skills — skipped (--skip-skills)"
+else
+  info "Obsidian skills (kepano/obsidian-skills)"
+  # already present?
+  need=0; for s in $KEPANO_SKILLS; do [[ -f "$SKILLS_DIR/$s/SKILL.md" ]] || need=1; done
+  if [[ "$need" -eq 0 ]]; then
+    ok "all kepano skills already installed"
+  else
+    have git || die "git is required to install the Obsidian skills"
+    tmp="$(mktemp -d)"
+    if git clone --depth 1 --quiet "https://github.com/${KEPANO_SKILLS_REPO}.git" "$tmp"; then
+      mkdir -p "$SKILLS_DIR"
+      for s in $KEPANO_SKILLS; do
+        if [[ -d "$tmp/skills/$s" ]]; then
+          rm -rf "$SKILLS_DIR/$s"; cp -R "$tmp/skills/$s" "$SKILLS_DIR/$s"; ok "skill $s"
+        else
+          warn "skill $s not found upstream (layout changed?)"
+        fi
+      done
+    else
+      warn "could not clone ${KEPANO_SKILLS_REPO} — install manually: /plugin marketplace add ${KEPANO_SKILLS_REPO}"
+    fi
+    rm -rf "$tmp"
+  fi
+fi
+
+# ===========================================================================
+# 7. Verify + next steps
 # ===========================================================================
 info "Verification"
 rc=0
@@ -201,6 +242,9 @@ have mmdc && ok "mmdc" || skip "mmdc (optional)"
 [[ -f "$JAR" ]] && ok "PlantUML JAR" || { miss "PlantUML JAR"; rc=1; }
 for id in obsidian-plantuml smart-connections; do
   [[ -f "$PLUGINS_DIR/$id/main.js" ]] && ok "plugin $id" || { miss "plugin $id"; rc=1; }
+done
+for s in $KEPANO_SKILLS; do
+  [[ -f "$SKILLS_DIR/$s/SKILL.md" ]] && ok "skill $s" || { miss "skill $s"; rc=1; }
 done
 
 cat <<EOF
