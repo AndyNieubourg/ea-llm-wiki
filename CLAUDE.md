@@ -417,7 +417,10 @@ Fixes applied: ...
 
 Skills live under `.claude/skills/` to make Obsidian-native conventions executable and to support deep reconnaissance work. **CLAUDE.md is the authoritative spec — these skills are *executable adjuncts*, not rule sources.** If a skill's defaults conflict with anything in this file (entity schema, frontmatter taxonomy, source-first principle, workflow names, tag prefixes, voice anchor), this file wins. Skills are invoked when their trigger conditions match, but they bend to the wiki's conventions, not the other way around.
 
-Two provenances. The wiki's **own** skills (committed here) are `init-wiki`, `voice-interview`, and `deep-recon`, plus the `pr-manager` agent. The Obsidian-native skills marked **⬇** below come from [`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills) (Steph Ango's official Agent Skills, MIT) and are **installed by `setup.sh` / `setup.ps1`, not committed** — so they stay updatable upstream and aren't redistributed here. After init, install them with the setup script (or `/plugin marketplace add kepano/obsidian-skills`).
+Three provenances, all committed-or-installed honestly (see [`NOTICE`](NOTICE)):
+- **The wiki's own** (Apache-2.0, committed): `init-wiki`, the `pr-manager` agent, and `voice-interview` (co-authored by the owner with LLM assistance and informed by public guidance on writing with LLMs — no third-party source redistributed in it).
+- **Adapted third-party** (committed, with attribution): `deep-recon` is adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon) (MIT) — voice-anchored to this wiki and re-routed to its entity folders. The upstream MIT notice is reproduced in `NOTICE`.
+- **Installed, not committed** (the **⬇** rows below): the Obsidian-native skills from [`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills) (Steph Ango's official Agent Skills, MIT), installed by `setup.sh` / `setup.ps1` into `.claude/skills/` (gitignored). Install with the setup script or `/plugin marketplace add kepano/obsidian-skills`.
 
 | Skill | Trigger | Primary use here |
 |---|---|---|

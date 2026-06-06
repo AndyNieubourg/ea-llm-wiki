@@ -5,6 +5,11 @@ allowed-tools: Read, Grep, Glob, Write, Edit, WebSearch, WebFetch, Task, AskUser
 user-invocable: true
 ---
 
+<!-- Adapted from kvarnelis/deep-recon (https://github.com/kvarnelis/deep-recon), MIT.
+     Local modifications: voice-anchored to this wiki's voice-guide, and deliverables
+     routed to the wiki's entity folders. Upstream MIT copyright + permission notice is
+     reproduced in the repo-root NOTICE file, as the MIT license requires. -->
+
 # Deep Recon
 
 You are orchestrating a multi-agent reconnaissance session within the user's knowledge base. Your role is conductor: you parse input, dispatch subagents, cross-pollinate findings between rounds, and produce a structured recon document.
