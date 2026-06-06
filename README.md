@@ -62,13 +62,13 @@ Clone, install a small set of prerequisites plus two Obsidian community plugins,
 > ```bash
 > ./setup.sh --check     # then: ./setup.sh
 > ```
-> Flags: `--skip-brew`, `--skip-plugins`, `--skip-mermaid`, `--help`.
+> Flags: `--skip-brew`, `--skip-plugins`, `--skip-skills`, `--skip-mermaid`, `--help`.
 >
 > **Windows (PowerShell):**
 > ```powershell
 > .\setup.ps1 --check    # then: .\setup.ps1
 > ```
-> Uses `winget` for prerequisites. If the script is blocked, run `powershell -ExecutionPolicy Bypass -File .\setup.ps1`. Flags: `--skip-winget`, `--skip-plugins`, `--skip-mermaid`, `--help`.
+> Uses `winget` for prerequisites. If the script is blocked, run `powershell -ExecutionPolicy Bypass -File .\setup.ps1`. Flags: `--skip-winget`, `--skip-plugins`, `--skip-skills`, `--skip-mermaid`, `--help`.
 >
 > The numbered steps below are the manual macOS equivalent if you'd rather do it by hand. On every platform you still finish in the Obsidian GUI: turn off Restricted Mode and enable the two plugins (step 6).
 
@@ -135,13 +135,14 @@ Then in Obsidian: **Settings → Community plugins → Browse**, and install **P
 ### What ships in the repo
 
 - **Obsidian config** under `wiki/.obsidian/` — which plugins to enable (`community-plugins.json`), PlantUML settings (`obsidian-plantuml/data.json`), core-plugin selections (Bases, Daily Notes, Properties, …). The plugin *code* and the PlantUML JAR are **not** committed — see step 6.
-- **Claude Code skills** under `.claude/skills/` and the **`pr-manager` agent** under `.claude/agents/`.
+- **The wiki's own Claude Code skills** under `.claude/skills/` (`init-wiki`, `voice-interview`, `deep-recon`) and the **`pr-manager` agent** under `.claude/agents/`.
 - **All authoring conventions** in `CLAUDE.md`.
 
 ### What you install separately (third-party, own licenses)
 
 - **PlantUML JAR** — GPLv3; download per step 6.
 - **`obsidian-plantuml` and Smart Connections plugins** — from Obsidian's community plugin browser.
+- **Obsidian Agent Skills** (`obsidian-markdown`, `obsidian-bases`, `obsidian-cli`, `json-canvas`, `defuddle`) — from [`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills) (MIT). The setup script clones them into `.claude/skills/` (gitignored); or run `/plugin marketplace add kepano/obsidian-skills` in Claude Code.
 
 ### What stays per-machine (gitignored)
 

@@ -26,6 +26,13 @@ governed solely by its own license, not by this project's Apache-2.0 license.
    License: per the plugin's own repository
    Source: https://github.com/brianpetro/obsidian-smart-connections
 
+4. Obsidian Agent Skills (obsidian-markdown, obsidian-bases, obsidian-cli,
+   json-canvas, defuddle)
+   Installed by setup.sh / setup.ps1 into .claude/skills/ (gitignored)
+   License: MIT
+   Source: https://github.com/kepano/obsidian-skills
+
 The repository commits only its own small Obsidian config (which plugins to
-enable, and the PlantUML SVG/local-JAR settings) so the right configuration
-applies once these tools are installed.
+enable, and the PlantUML SVG/local-JAR settings) and its OWN Claude Code skills
+(init-wiki, voice-interview, deep-recon) and the pr-manager agent, so the right
+configuration applies once the third-party tools above are installed.
