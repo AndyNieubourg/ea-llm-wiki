@@ -132,3 +132,11 @@ Both should print version lines. Then in Obsidian, open any page with a PlantUML
 ## Lineage
 
 Built on [Andrej Karpathy's LLM wiki pattern](https://gist.github.com/karpathy/1dd0294ef9567971c1e4348a90d69285), via [Balu Kosuri's scaffolding](https://github.com/balukosuri/llm-wiki-karpathy). This foundation specialises the pattern for **enterprise architects**: the EA-discipline domain taxonomy, ArchiMate/C4 diagram support, a business-deliverable voice guide, and the four-workflow operating manual. The ethos — atomic notes, dense linking, lint-driven compounding — is unchanged.
+
+## License
+
+Copyright 2026 Andy Nieubourg. Licensed under the **Apache License, Version 2.0** — see [`LICENSE`](LICENSE).
+
+This license covers the scaffold itself: the operating manual (`CLAUDE.md`), the workflows, the directory structure, the domain taxonomy, the skills under `.claude/skills/`, the `pr-manager` agent, the voice-guide *template*, and the Obsidian config authored here. It does **not** cover the bundled third-party components (the PlantUML JAR under GPL, and the `obsidian-plantuml` / Smart Connections plugins), which retain their own licenses — see [`NOTICE`](NOTICE).
+
+Any wiki *content* you create after running `/init-wiki` (your `wiki/` pages, attachments, and personalised voice guide) is yours and is not part of this licensed scaffold. Keep that content in a **separate, private** repository if it derives from client work — `raw/` is gitignored precisely so source documents never enter version control, but derived pages can still carry confidential material.
