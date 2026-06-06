@@ -4,9 +4,10 @@
 
 .DESCRIPTION
   Installs the prerequisites the wiki needs but does NOT commit (third-party
-  tools under their own licenses): the PlantUML JAR (GPLv3) and the
-  obsidian-plantuml / Smart Connections community plugins. The repo ships only
-  its own Obsidian config, so once these land the committed settings apply.
+  under their own licenses): the PlantUML JAR (GPLv3), the obsidian-plantuml /
+  Smart Connections community plugins, and the Obsidian Agent Skills from
+  kepano/obsidian-skills (MIT). The repo ships only its own config + its own
+  skills, so once these land the committed settings apply.
 
   Uses winget for prerequisites. Safe to re-run: every step checks before acting.
 
@@ -16,6 +17,8 @@
   Don't touch winget packages (you manage them).
 .PARAMETER SkipPlugins
   Skip the two community-plugin downloads.
+.PARAMETER SkipSkills
+  Skip the kepano/obsidian-skills install.
 .PARAMETER SkipMermaid
   Skip mermaid-cli (only needed for headless diagram checks in Claude Code).
 
@@ -28,6 +31,7 @@ param(
   [switch]$Check,
   [switch]$SkipWinget,
   [switch]$SkipPlugins,
+  [switch]$SkipSkills,
   [switch]$SkipMermaid,
   [switch]$Help
 )
@@ -38,6 +42,7 @@ foreach ($a in $args) {
     '--check'        { $Check = $true }
     '--skip-winget'  { $SkipWinget = $true }
     '--skip-plugins' { $SkipPlugins = $true }
+    '--skip-skills'  { $SkipSkills = $true }
     '--skip-mermaid' { $SkipMermaid = $true }
     '-h'             { $Help = $true }
     '--help'         { $Help = $true }
@@ -52,6 +57,8 @@ $ErrorActionPreference = 'Stop'
 $PlantumlRepo      = 'plantuml/plantuml'                       # GPLv3 distribution
 $PluginPlantumlRepo = 'joethei/obsidian-plantuml'
 $PluginSmartRepo    = 'brianpetro/obsidian-smart-connections'
+$KepanoSkillsRepo   = 'kepano/obsidian-skills'                 # MIT — Obsidian Agent Skills
+$KepanoSkills       = @('obsidian-markdown','obsidian-bases','obsidian-cli','json-canvas','defuddle')
 
 # winget package IDs
 $WingetPkgs = [ordered]@{
@@ -85,6 +92,7 @@ $Obs = Join-Path $RepoRoot 'wiki\.obsidian'
 if (-not (Test-Path $Obs)) { Die "expected $Obs - run this from the repo root (where CLAUDE.md lives)." }
 $Jar        = Join-Path $Obs 'plantuml\plantuml.jar'
 $PluginsDir = Join-Path $Obs 'plugins'
+$SkillsDir  = Join-Path $RepoRoot '.claude\skills'
 
 # ===========================================================================
 # CHECK MODE
@@ -100,6 +108,9 @@ if ($Check) {
     $d = Join-Path $PluginsDir $id
     if ((Test-Path "$d\main.js") -and (Test-Path "$d\manifest.json")) { Ok "plugin $id installed" }
     else { Miss "plugin $id not installed" }
+  }
+  foreach ($s in $KepanoSkills) {
+    if (Test-Path (Join-Path $SkillsDir "$s\SKILL.md")) { Ok "skill $s installed" } else { Miss "skill $s not installed" }
   }
   exit 0
 }
@@ -206,7 +217,44 @@ if ($SkipPlugins) {
 }
 
 # ===========================================================================
-# 6. Verify + next steps
+# 6. Obsidian Agent Skills (kepano/obsidian-skills, MIT) - NOT redistributed
+#    here; cloned into .claude\skills\ (gitignored). The wiki's own skills
+#    (init-wiki, voice-interview, deep-recon) are committed and left untouched.
+# ===========================================================================
+if ($SkipSkills) {
+  Info 'Obsidian skills - skipped (--skip-skills)'
+} else {
+  Info 'Obsidian skills (kepano/obsidian-skills)'
+  $need = $false
+  foreach ($s in $KepanoSkills) { if (-not (Test-Path (Join-Path $SkillsDir "$s\SKILL.md"))) { $need = $true } }
+  if (-not $need) {
+    Ok 'all kepano skills already installed'
+  } elseif (-not (Have 'git')) {
+    Die 'git is required to install the Obsidian skills'
+  } else {
+    $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("kepano-" + [System.IO.Path]::GetRandomFileName())
+    try {
+      git clone --depth 1 --quiet "https://github.com/$KepanoSkillsRepo.git" $tmp
+      if ($LASTEXITCODE -ne 0) { throw "clone failed" }
+      New-Item -ItemType Directory -Force -Path $SkillsDir | Out-Null
+      foreach ($s in $KepanoSkills) {
+        $src = Join-Path $tmp "skills\$s"
+        if (Test-Path $src) {
+          $dst = Join-Path $SkillsDir $s
+          if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
+          Copy-Item -Recurse $src $dst; Ok "skill $s"
+        } else { Warn "skill $s not found upstream (layout changed?)" }
+      }
+    } catch {
+      Warn "could not clone $KepanoSkillsRepo - install manually: /plugin marketplace add $KepanoSkillsRepo"
+    } finally {
+      if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }
+    }
+  }
+}
+
+# ===========================================================================
+# 7. Verify + next steps
 # ===========================================================================
 Info 'Verification'
 $rc = 0
@@ -215,6 +263,9 @@ if (Have 'mmdc') { Ok 'mmdc' } else { Skip 'mmdc (optional)' }
 if (Test-Path $Jar) { Ok 'PlantUML JAR' } else { Miss 'PlantUML JAR'; $rc = 1 }
 foreach ($id in 'obsidian-plantuml','smart-connections') {
   if (Test-Path (Join-Path $PluginsDir "$id\main.js")) { Ok "plugin $id" } else { Miss "plugin $id"; $rc = 1 }
+}
+foreach ($s in $KepanoSkills) {
+  if (Test-Path (Join-Path $SkillsDir "$s\SKILL.md")) { Ok "skill $s" } else { Miss "skill $s"; $rc = 1 }
 }
 
 Write-Host ''

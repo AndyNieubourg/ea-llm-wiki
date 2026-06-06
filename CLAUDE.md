@@ -415,19 +415,23 @@ Fixes applied: ...
 
 ## Skills
 
-Skills are installed under `.claude/skills/` to make Obsidian-native conventions executable and to support deep reconnaissance work. **CLAUDE.md is the authoritative spec — these skills are *executable adjuncts*, not rule sources.** If a skill's defaults conflict with anything in this file (entity schema, frontmatter taxonomy, source-first principle, workflow names, tag prefixes, voice anchor), this file wins. Skills are invoked when their trigger conditions match, but they bend to the wiki's conventions, not the other way around.
+Skills live under `.claude/skills/` to make Obsidian-native conventions executable and to support deep reconnaissance work. **CLAUDE.md is the authoritative spec — these skills are *executable adjuncts*, not rule sources.** If a skill's defaults conflict with anything in this file (entity schema, frontmatter taxonomy, source-first principle, workflow names, tag prefixes, voice anchor), this file wins. Skills are invoked when their trigger conditions match, but they bend to the wiki's conventions, not the other way around.
+
+Two provenances. The wiki's **own** skills (committed here) are `init-wiki`, `voice-interview`, and `deep-recon`, plus the `pr-manager` agent. The Obsidian-native skills marked **⬇** below come from [`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills) (Steph Ango's official Agent Skills, MIT) and are **installed by `setup.sh` / `setup.ps1`, not committed** — so they stay updatable upstream and aren't redistributed here. After init, install them with the setup script (or `/plugin marketplace add kepano/obsidian-skills`).
 
 | Skill | Trigger | Primary use here |
 |---|---|---|
 | `init-wiki` | first-time setup of this foundation | Interviews the owner and tailors `CLAUDE.md`, `README.md`, `domains.md`, and the voice guide. Run once, then it's dormant. |
 | `voice-interview` | "update my voice guide", "interview me about my writing" | Extracts the owner's writing voice from real deliverables and folds it into [[voice-guide]]. Run during init and whenever the voice anchor drifts. |
-| `obsidian-markdown` | `.md` files; mentions of wikilinks, callouts, frontmatter, embeds | Codifies the wikilink / callout / block-id / footnote conventions this wiki uses. Use callouts (`> [!warning]`) for in-page emphasis, block IDs (`^id`) when linking to specific paragraphs. |
-| `obsidian-bases` | `.base` files; database-style views | The `coverage.base` and any future live dashboards (questions triage, single-source-risk view, stale-page scan). |
-| `obsidian-cli` | "interact with my vault", live operations on the active Obsidian instance | **Conditional — see below.** Use only when Obsidian is running *and* the CLI is materially faster than `rg`/`fd`. |
-| `json-canvas` | `.canvas` files; mind maps, flowcharts | Domain-coverage canvases, concept-cluster maps, case-study network diagrams. Niche but cheap. |
-| `defuddle` | URLs to non-`.md` web pages | First-line tool for web-sourced `ingest`: cleans clutter before WebFetch. Requires `npm install -g defuddle`. |
-| `confluence-edit` | read/edit a Confluence page | Publish or sync wiki material to Confluence Cloud via the browser session. Authors prose in the owner's voice. |
+| ⬇ `obsidian-markdown` | `.md` files; mentions of wikilinks, callouts, frontmatter, embeds | Codifies the wikilink / callout / block-id / footnote conventions this wiki uses. Use callouts (`> [!warning]`) for in-page emphasis, block IDs (`^id`) when linking to specific paragraphs. |
+| ⬇ `obsidian-bases` | `.base` files; database-style views | The `coverage.base` and any future live dashboards (questions triage, single-source-risk view, stale-page scan). |
+| ⬇ `obsidian-cli` | "interact with my vault", live operations on the active Obsidian instance | **Conditional — see below.** Use only when Obsidian is running *and* the CLI is materially faster than `rg`/`fd`. |
+| ⬇ `json-canvas` | `.canvas` files; mind maps, flowcharts | Domain-coverage canvases, concept-cluster maps, case-study network diagrams. Niche but cheap. |
+| ⬇ `defuddle` | URLs to non-`.md` web pages | First-line tool for web-sourced `ingest`: cleans clutter before WebFetch. Requires `npm install -g defuddle`. |
 | `deep-recon` | `/deep-recon <topic>`, "brainstorm deeply", "stress-test this idea" | Multi-agent reconnaissance for `query` rumination and pre-essay scoping. Voice-anchored to [[voice-guide]]. Only the final deliverable lands in the wiki, routed to its earned home by content type (essay → `analyses/`, update → in-place on the relevant page, half-formed → `inbox/`) — same routing as any `query` output. Intermediate agent files are tool scratch, not wiki content; see `SKILL.md` for the staging convention. |
+
+> [!note] Publishing to Confluence
+> Earlier foundations bundled a `confluence-edit` skill. It is **not** part of this scaffold (it is Anthropic-bundled and not universally useful). If you want to publish wiki material to Confluence, add it in your own wiki via `/plugin` (the Anthropic `anthropic-skills:confluence-edit`), and re-anchor its prose to [[voice-guide]].
 
 ### `obsidian-cli` — conditional gate
 
