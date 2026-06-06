@@ -8,7 +8,7 @@
 # Third-party skills are NOT redistributed — installed by setup.sh / setup.ps1
 # from kepano/obsidian-skills (MIT). Re-ignored so a local install can't be
 # committed by accident. Only the wiki's OWN skills (init-wiki, voice-interview,
-# deep-recon) and the pr-manager agent are tracked.
+# deep-recon, critical-reviewer) and the pr-manager agent are tracked.
 .claude/skills/obsidian-markdown/
 .claude/skills/obsidian-bases/
 .claude/skills/obsidian-cli/
