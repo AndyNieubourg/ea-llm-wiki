@@ -1,0 +1,31 @@
+EA LLM Wiki — foundation
+Copyright 2026 Andy Nieubourg
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+------------------------------------------------------------------------
+Third-party components bundled in this repository
+------------------------------------------------------------------------
+
+The following components are redistributed within this repository under
+their own licenses. The Apache-2.0 license of this project does NOT apply
+to them; each retains the license granted by its respective author.
+
+1. PlantUML (plantuml.jar)
+   Path: wiki/.obsidian/plantuml/plantuml.jar
+   License: GNU GPL v3 (the GPL distribution of PlantUML)
+   Source: https://plantuml.com / https://github.com/plantuml/plantuml
+
+2. obsidian-plantuml (Obsidian community plugin)
+   Path: wiki/.obsidian/plugins/obsidian-plantuml/
+   License: per the plugin's own manifest/LICENSE
+   Source: https://github.com/joethei/obsidian-plantuml
+
+3. Smart Connections (Obsidian community plugin)
+   Path: wiki/.obsidian/plugins/smart-connections/
+   License: per the plugin's own manifest/LICENSE
+   Source: https://github.com/brianpetro/obsidian-smart-connections
+
+These are bundled for convenience (offline, no public-server round-trip).
+If you prefer not to redistribute them, delete the paths above and install
+the plugins from within Obsidian; the JAR is fetched on first plugin use.
