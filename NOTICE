@@ -4,28 +4,28 @@ Copyright 2026 Andy Nieubourg
 This product is licensed under the Apache License, Version 2.0 (see LICENSE).
 
 ------------------------------------------------------------------------
-Third-party components bundled in this repository
+Third-party dependencies (installed separately, NOT redistributed here)
 ------------------------------------------------------------------------
 
-The following components are redistributed within this repository under
-their own licenses. The Apache-2.0 license of this project does NOT apply
-to them; each retains the license granted by its respective author.
+This repository does not bundle third-party code. The tools below are
+installed by the user during setup (see README, "Local setup"); each is
+governed solely by its own license, not by this project's Apache-2.0 license.
 
 1. PlantUML (plantuml.jar)
-   Path: wiki/.obsidian/plantuml/plantuml.jar
+   Installed to: wiki/.obsidian/plantuml/plantuml.jar (gitignored)
    License: GNU GPL v3 (the GPL distribution of PlantUML)
    Source: https://plantuml.com / https://github.com/plantuml/plantuml
 
 2. obsidian-plantuml (Obsidian community plugin)
-   Path: wiki/.obsidian/plugins/obsidian-plantuml/
-   License: per the plugin's own manifest/LICENSE
+   Installed via Obsidian's community plugin browser
+   License: per the plugin's own repository
    Source: https://github.com/joethei/obsidian-plantuml
 
 3. Smart Connections (Obsidian community plugin)
-   Path: wiki/.obsidian/plugins/smart-connections/
-   License: per the plugin's own manifest/LICENSE
+   Installed via Obsidian's community plugin browser
+   License: per the plugin's own repository
    Source: https://github.com/brianpetro/obsidian-smart-connections
 
-These are bundled for convenience (offline, no public-server round-trip).
-If you prefer not to redistribute them, delete the paths above and install
-the plugins from within Obsidian; the JAR is fetched on first plugin use.
+The repository commits only its own small Obsidian config (which plugins to
+enable, and the PlantUML SVG/local-JAR settings) so the right configuration
+applies once these tools are installed.
