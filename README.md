@@ -135,7 +135,7 @@ Then in Obsidian: **Settings → Community plugins → Browse**, and install **P
 ### What ships in the repo
 
 - **Obsidian config** under `wiki/.obsidian/` — which plugins to enable (`community-plugins.json`), PlantUML settings (`obsidian-plantuml/data.json`), core-plugin selections (Bases, Daily Notes, Properties, …). The plugin *code* and the PlantUML JAR are **not** committed — see step 6.
-- **The wiki's own Claude Code skills** under `.claude/skills/` (`init-wiki`, `voice-interview`, `deep-recon`) and the **`pr-manager` agent** under `.claude/agents/`.
+- **Claude Code skills** under `.claude/skills/` — `init-wiki` and `voice-interview` (the wiki's own) and `deep-recon` (adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon), MIT, attributed in [`NOTICE`](NOTICE)) — plus the **`pr-manager` agent** under `.claude/agents/`.
 - **All authoring conventions** in `CLAUDE.md`.
 
 ### What you install separately (third-party, own licenses)
@@ -169,6 +169,6 @@ Built on [Andrej Karpathy's LLM wiki pattern](https://gist.github.com/karpathy/1
 
 Copyright 2026 Andy Nieubourg. Licensed under the **Apache License, Version 2.0** — see [`LICENSE`](LICENSE).
 
-This license covers the scaffold itself: the operating manual (`CLAUDE.md`), the workflows, the directory structure, the domain taxonomy, the skills under `.claude/skills/`, the `pr-manager` agent, the voice-guide *template*, and the Obsidian config authored here. It does **not** cover the third-party tools the wiki depends on (the PlantUML JAR under GPL, and the `obsidian-plantuml` / Smart Connections plugins) — those are installed separately, not redistributed here, and retain their own licenses. See [`NOTICE`](NOTICE).
+This license covers the wiki's own work: the operating manual (`CLAUDE.md`), the workflows, the directory structure, the domain taxonomy, the `init-wiki` and `voice-interview` skills, the `pr-manager` agent, the voice-guide *template*, and the Obsidian config authored here. It does **not** cover: the `deep-recon` skill (adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon), retained under its own **MIT** license), or the third-party tools installed separately (the PlantUML JAR under GPL, the `obsidian-plantuml` / Smart Connections plugins, and the `kepano/obsidian-skills` set). Each retains its own license — see [`NOTICE`](NOTICE).
 
 Any wiki *content* you create after running `/init-wiki` (your `wiki/` pages, attachments, and personalised voice guide) is yours and is not part of this licensed scaffold. Keep that content in a **separate, private** repository if it derives from client work — `raw/` is gitignored precisely so source documents never enter version control, but derived pages can still carry confidential material.
