@@ -241,6 +241,13 @@ A diagram isn't *done* until confirmed to render: a malformed block shows as an 
 
 **Fallback:** if no renderer is available and the CLI gate fails, do a syntax self-check and label the diagram *rendered-unverified*. Never claim a render you haven't observed (the diagram form of "absence is a claim").
 
+> [!warning] Mermaid node labels must not start with a list marker
+> Obsidian parses label text as Markdown, so a label that **begins** with `N.`/`N)` or `-`/`*`/`+` then a space renders as an "Unsupported markdown: list" error box. `mmdc` (Method A) renders it cleanly — this is the one failure Method A misses, so an Obsidian render (Method B) is the only check that catches it.
+> - **Numbered:** write `N —` not `N.` (e.g. `["4 — Agent"]`); em dash in labels is house style.
+> - **Bullet / `+` where the marker is meaningful:** swap the trailing space for a non-breaking space (U+00A0) — looks identical, no longer parses as a list.
+> - A marker mid-label (after `<br/>`, inside `<b>…</b>`) is safe; only the label *start* triggers it.
+> See [[mermaid-label-list-marker-gotcha]] for the lesson and detection grep.
+
 **Storage.** `wiki/attachments/<entity-type>/<page-slug>/<name>.<ext>`, mirroring entity structure — e.g. a figure on `sources/strengholt-medallion-ch03.md` → `wiki/attachments/sources/strengholt-medallion-ch03/medallion-overview.png`. Kebab-case, content-describing filenames; add source coordinates when lineage matters (`fig-3-1-medallion-flow.png`).
 
 **Embedding.** `![[attachments/sources/<slug>/<image>.png]]`, with a one-line prose caption under it saying what the image shows and why it's here. Cite the source page if from `raw/` (`Source: [[strengholt-medallion-ch03]], figure 3.1`).
