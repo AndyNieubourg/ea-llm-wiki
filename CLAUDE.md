@@ -3,7 +3,7 @@
 Read this file at the start of every session. It defines what this wiki is, how its pages are organised, and the workflows you use to maintain it.
 
 > [!important] This is a foundation, not a personalised wiki yet
-> This repo is the **reusable LLM-wiki scaffold for an enterprise architect**. Before first real use, run the initialisation interview — `/init-wiki` (or paste [`INIT.md`](INIT.md)) — which interviews the owner and rewrites the owner profile, purpose, EA-discipline domains, and voice guide in place, then removes this banner. Until that is done, the `{{PLACEHOLDER}}` values below are generic defaults. Everything *except* the owner profile, the purpose, and the domain taxonomy is already final and general-purpose: entity types, page format, the four workflows, image/diagram rules, skills, and the git workflow do not change per owner.
+> This repo is the **reusable LLM-wiki scaffold for an enterprise architect**. Before first real use, run the initialisation interview — `/init-wiki` (or paste [`INIT.md`](INIT.md)) — which interviews the owner and rewrites the owner profile, purpose, EA-discipline domains, and voice guide in place, then removes this banner. Until that is done, the `{{PLACEHOLDER}}` values throughout are generic defaults. The *structure* is already final and general-purpose — entity types, page format, the four workflows, image/diagram rules, skills, and the git workflow do not change per owner. What init personalises is the owner-specific content: the profile, the purpose, the EA-discipline domains, the voice guide, and the inline `{{…}}` settings scattered below (raw-source path, secondary jobs, confidentiality posture, shipping autonomy, locale defaults).
 
 ---
 
@@ -491,7 +491,7 @@ When an output is an applied artifact (ADR, lesson plan, exam answer, project de
 The wiki is a git repo. Sessions usually run inside a worktree on a branch named `claude/<slug>`. Two rules apply when committing work:
 
 1. **Commit per logical unit of work.** A workflow step (`ingest` / `capture` / `query` / `lint` / case write-up / etc.) commits when it completes, with a message that names the workflow and the artefact. Don't accumulate unrelated changes into one commit.
-2. **Push the branch to the remote, do not leave it local-only.** Whenever you commit on a `claude/*` branch, immediately push with `git push -u origin <branch>` (the `-u` is required the first time so the branch is created on the remote and the upstream is set). This makes the branch visible, reviewable from any device, and recoverable if the local worktree is lost. **A commit that only exists locally is treated as not-yet-done.**
+2. **Push the branch to the remote, do not leave it local-only.** Whenever you commit on a `claude/*` branch, immediately push it (see the recipe below for the exact command). This makes the branch visible, reviewable from any device, and recoverable if the local worktree is lost. **A commit that only exists locally is treated as not-yet-done.**
 
 Never push to `main` directly. Integration into `main` happens through a PR and `gh pr merge`.
 
@@ -515,7 +515,7 @@ The standard sequence after finishing a unit of work, inside a worktree:
 ```
 git add <specific files>
 git commit -m "<workflow>: <artefact>"
-git push -u origin <current-branch>      # first push of the branch
+git push -u origin <current-branch>      # -u creates the branch on the remote + sets upstream (first push only)
 # then hand off to the pr-manager agent to open → review → merge the PR
 ```
 
