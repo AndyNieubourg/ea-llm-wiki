@@ -246,7 +246,6 @@ A diagram isn't *done* until confirmed to render: a malformed block shows as an 
 > - **Numbered:** write `N —` not `N.` (e.g. `["4 — Agent"]`); em dash in labels is house style.
 > - **Bullet / `+` where the marker is meaningful:** swap the trailing space for a non-breaking space (U+00A0) — looks identical, no longer parses as a list.
 > - A marker mid-label (after `<br/>`, inside `<b>…</b>`) is safe; only the label *start* triggers it.
-> See [[mermaid-label-list-marker-gotcha]] for the lesson and detection grep.
 
 **Storage.** `wiki/attachments/<entity-type>/<page-slug>/<name>.<ext>`, mirroring entity structure — e.g. a figure on `sources/strengholt-medallion-ch03.md` → `wiki/attachments/sources/strengholt-medallion-ch03/medallion-overview.png`. Kebab-case, content-describing filenames; add source coordinates when lineage matters (`fig-3-1-medallion-flow.png`).
 

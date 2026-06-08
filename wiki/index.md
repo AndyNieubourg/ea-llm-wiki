@@ -12,7 +12,6 @@ Catalog of every page in the wiki, grouped by entity type. Updated during `inges
 - [[domains]] — EA-discipline domain taxonomy
 - [[coverage]] — materialised domain-coverage matrix
 - [[voice-guide]] — style anchor for voiced output (`wiki/_resources/voice-guide.md`)
-- [[mermaid-label-list-marker-gotcha]] — Mermaid label list-marker rendering bug and its fixes (`wiki/_resources/mermaid-label-list-marker-gotcha.md`)
 
 ## Sources
 
