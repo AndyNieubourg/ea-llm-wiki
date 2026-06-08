@@ -2,8 +2,11 @@
 
 Read this file at the start of every session. It defines what this wiki is, how its pages are organised, and the workflows you use to maintain it.
 
+> [!note] House style for this file (apply to every edit)
+> CLAUDE.md is injected at the start of every session, so every line is re-read each time. Keep it lean: condense **deterministic rules** (paths, syntax, fixed procedures, reference tables) to the rule itself; for **judgment calls** (when, how much, trade-offs) keep the *why* — it steers the decision — but in the fewest words that preserve it. Cut filler, duplication, and once-only backstory.
+
 > [!important] This is a foundation, not a personalised wiki yet
-> This repo is the **reusable LLM-wiki scaffold for an enterprise architect**. Before first real use, run the initialisation interview — `/init-wiki` (or paste [`INIT.md`](INIT.md)) — which interviews the owner and rewrites the owner profile, purpose, EA-discipline domains, and voice guide in place, then removes this banner. Until that is done, the `{{PLACEHOLDER}}` values below are generic defaults. Everything *except* the owner profile, the purpose, and the domain taxonomy is already final and general-purpose: entity types, page format, the four workflows, image/diagram rules, skills, and the git workflow do not change per owner.
+> This repo is the **reusable LLM-wiki scaffold for an enterprise architect**. Before first real use, run the initialisation interview — `/init-wiki` (or paste [`INIT.md`](INIT.md)) — which interviews the owner and rewrites the owner profile, purpose, EA-discipline domains, and voice guide in place, then removes this banner. Until that is done, the `{{PLACEHOLDER}}` values throughout are generic defaults. The *structure* is already final and general-purpose — entity types, page format, the four workflows, image/diagram rules, skills, and the git workflow do not change per owner. What init personalises is the owner-specific content: the profile, the purpose, the EA-discipline domains, the voice guide, and the inline `{{…}}` settings scattered below (raw-source path, secondary jobs, confidentiality posture, shipping autonomy, locale defaults).
 
 ---
 
@@ -185,19 +188,19 @@ The `confidence:` field is similarly optional. Default behaviour: omit unless th
 
 ## Images and diagrams
 
-Sometimes a picture says more than a thousand words. The wiki uses images where they genuinely carry the concept — not as decoration, not exhaustively, but generously enough that re-reading a page surfaces the visual structure of the idea, not just the prose. **Bias toward inclusion.** Removing a redundant image later is cheap; reconstructing the visual context after the raw source has slipped out of recent memory is expensive.
+The wiki uses images where they carry the concept, not as decoration. **Bias toward inclusion:** removing a redundant image later is cheap; reconstructing visual context after the source has slipped from memory is expensive.
 
-**Three tracks, in this order of preference:**
+**Three tracks, in order of preference:**
 
-1. **Mermaid (default) for general-purpose diagrams.** Flowcharts, sequence diagrams, state machines, class/ER diagrams, mindmaps, gantt, quadrant charts, xychart, simple component graphs, layered architectures. Renders natively in Obsidian — no plugin, no server. Best when the diagram's structure is the message and portability matters most.
-2. **PlantUML for ArchiMate, C4, and richer EA notations.** When the diagram needs canonical ArchiMate elements (Strategy / Motivation / Business / Application / Technology layers with the correct shapes and colours), C4 system context / container / component diagrams, or complex notations Mermaid doesn't cover. Rendered via the **`obsidian-plantuml`** community plugin (installed under `wiki/.obsidian/plugins/`) using the **local PlantUML JAR** at `wiki/.obsidian/plantuml/plantuml.jar`. System prerequisites: `brew install openjdk graphviz` (see `wiki/.obsidian/plantuml/README.md` for the post-install symlink command). The plugin falls back to the public PlantUML server if local rendering fails.
-3. **Committed image files (fallback) for genuine visuals.** Use when text-based diagrams would lose meaning: source-material screenshots that are iconic in their own styling (Gartner 2×2s, vendor Magic Quadrants, reference-architecture figures, the EU AI Act risk-tier pyramid), photographs (whiteboard captures, conference slides), pre-rendered ArchiMate exports from tools like Archi (where the layout was crafted by hand). Stored as binaries in git.
+1. **Mermaid (default)** — flowcharts, sequence, state, class/ER, mindmap, gantt, quadrant, xychart, simple component/layer graphs. Renders natively in Obsidian (no plugin, no server). Prefer it when structure is the message and portability matters.
+2. **PlantUML** — ArchiMate (Strategy/Motivation/Business/Application/Technology with correct shapes/colours), C4 (context/container/component), and notations Mermaid lacks. Rendered by the **`obsidian-plantuml`** plugin (under `wiki/.obsidian/plugins/`) via the local JAR at `wiki/.obsidian/plantuml/plantuml.jar`. Prereq: `brew install openjdk graphviz` plus the symlink (see `wiki/.obsidian/plantuml/README.md`). Falls back to the public PlantUML server if local rendering fails.
+3. **Committed image files (fallback)** — only when text diagrams lose meaning: iconic source screenshots (Gartner 2×2s, Magic Quadrants, reference-architecture figures, the EU AI Act risk pyramid), photographs (whiteboards, slides), hand-laid ArchiMate exports from Archi. Stored as binaries in git.
 
-These tracks compose freely. If the source's own diagram is iconic *and* a redrawn Mermaid version helps the reader navigate the structure, include both. If you've drawn an ArchiMate cascade in PlantUML *and* a Mermaid summary captures the simplified flow, keep both.
+Tracks compose: include both an iconic source image and a redrawn Mermaid version when each adds distinct value.
 
 ### PlantUML conventions
 
-The wiki uses the **ArchiMate stdlib** by Hosiaisluoma (built into the PlantUML standard library). Every ArchiMate diagram opens with the include:
+ArchiMate diagrams use the **Hosiaisluoma ArchiMate stdlib** (in the PlantUML standard library), opening with:
 
 ```plantuml
 @startuml
@@ -206,86 +209,71 @@ title <descriptive title>
 skinparam linetype ortho
 ```
 
-Macros from the stdlib follow the pattern `<Layer>_<Element>(id, "label")` — e.g. `Motivation_Goal(g1, "Enable instant onboarding")`, `Business_Process(bp, "Order Fulfilment")`, `Application_Component(ac, "Order Service")`, `Strategy_Capability(c, "Customer Onboarding")`. Relationships use `Rel_<Type>(source, target)` macros — e.g. `Rel_Realization(g2, g1)`, `Rel_Influence(d1, g1)`, `Rel_Association(exec, d1)`.
+Element macros: `<Layer>_<Element>(id, "label")` — e.g. `Motivation_Goal(g1, "…")`, `Business_Process(bp, "…")`, `Application_Component(ac, "…")`, `Strategy_Capability(c, "…")`. Relationship macros: `Rel_<Type>(source, target)` — e.g. `Rel_Realization(g2, g1)`, `Rel_Influence(d1, g1)`. For non-ArchiMate PlantUML (sequence, C4 via `C4-PlantUML`, deployment), include the relevant stdlib and omit the ArchiMate include.
 
-For non-ArchiMate PlantUML (sequence diagrams, C4 with the `C4-PlantUML` stdlib, deployment diagrams), include the relevant stdlib explicitly and omit the ArchiMate include.
+**Choice:** ArchiMate any-layer, C4, and UML deployment → PlantUML; everything else, and anything where portability matters → Mermaid.
 
-**When to pick PlantUML over Mermaid:**
+**Output: SVG by default** (scales cleanly, better for labelled ArchiMate). Per-block override with ` ```plantuml-png ` or ` ```plantuml-ascii `.
 
-| Use Mermaid | Use PlantUML |
-|---|---|
-| Generic flowchart, sequence, ER, state | ArchiMate viewpoints (any layer) |
-| Quadrant chart, xychart | C4 context / container / component |
-| Mindmap, gantt | UML deployment diagram |
-| Anything where Mermaid renders well | Diagrams reusing Hosiaisluoma cookbook patterns |
-| When portability matters most (Mermaid renders without a server) | When the canonical notation is the message |
+**Rendering: local JAR** (`wiki/.obsidian/plantuml/plantuml.jar`, GPL, not committed — download once per the README). Fast and offline; prereqs and fallback are in track 2.
 
-**Default processor: SVG.** The `obsidian-plantuml` plugin is configured to render SVG by default — scales cleanly at any zoom, better for ArchiMate diagrams with text labels. PNG and ASCII are available per-block by using `​```plantuml-png` or `​```plantuml-ascii` instead of plain `​```plantuml`.
+### Visual verification (Mermaid / PlantUML)
 
-**Rendering: local JAR.** The plugin renders via the JAR at `wiki/.obsidian/plantuml/plantuml.jar` (GPL distribution; not committed — downloaded once per `wiki/.obsidian/plantuml/README.md`). Java and GraphViz are required system-side — install once with `brew install openjdk graphviz` plus the `openjdk` symlink (see `wiki/.obsidian/plantuml/README.md`). Local rendering is fast and offline; the public PlantUML server (`plantuml.com`) remains configured as automatic fallback if the local chain fails.
+A diagram isn't *done* until confirmed to render: a malformed block shows as an error box only at view time, and a text diff never catches it. So verify every diagram you author or materially edit. **Prefer Method A in a worktree** (the usual case); Method B for interactive work in the live vault.
 
-**Visual verification (Mermaid / PlantUML) — part of the way of working.** A diagram is not *done* until it has been confirmed to render. A malformed Mermaid block or a failed PlantUML chain shows as an error box only at view time — a text diff never catches it, and the page looks fine in the editor. So whenever I author or materially edit a Mermaid or PlantUML diagram, verify it renders before treating the page as finished. There are two methods; **prefer Method A in a `claude/*` worktree** (the usual case), Method B for interactive work in the live vault.
+**Method A — headless render (default; concurrency-safe).** Renders the file on your branch with no Obsidian, safe across parallel worktrees. Needs `mmdc` on PATH and, for PlantUML, `java` + `dot`.
+1. Render to a temp path outside `wiki/`:
+   - Mermaid: block body → `/tmp/diagram.mmd`, then `mmdc -i /tmp/diagram.mmd -o /tmp/diagram-check.png`.
+   - PlantUML: `@startuml…@enduml` → `/tmp/diagram.puml`, then `java -jar wiki/.obsidian/plantuml/plantuml.jar -tpng /tmp/diagram.puml` (`-tsvg` to match the vault default).
+2. `Read` the PNG: did it draw, or is there an error box / empty render?
+3. Delete the temp files (tool scratch; keep them out of `wiki/`).
 
-**Method A — headless render (default; concurrency-safe, worktree-native).** Render the diagram straight to a PNG with the command-line tools, no Obsidian involved. This is the right method for worktree sessions: it renders *the actual file you're editing on the branch*, and because it touches no shared live vault it is safe to run in many parallel worktrees at once. Requires `mmdc` (mermaid-cli, on PATH) and, for PlantUML, `java` + `dot` (see `wiki/.obsidian/plantuml/README.md`).
+**Method B — Obsidian live-vault screenshot (interactive; main-checkout only).** Use to see the diagram in page context.
+1. Gate: needs Obsidian running and the CLI enabled (`pgrep -x Obsidian`; the `obsidian-cli` conditional gate).
+2. Focus the page (`obsidian read path="wiki/<…>.md"`), ensure Reading/Live-Preview, then `obsidian dev:screenshot path="/tmp/diagram-check.png"` (outside the vault). `obsidian dev:errors` surfaces silent parse failures.
+3. Confirm + clean up as in Method A.
 
-1. **Extract + render to a temp path outside `wiki/`.**
-   - Mermaid: write the fenced block's body to `/tmp/diagram.mmd`, then `mmdc -i /tmp/diagram.mmd -o /tmp/diagram-check.png`.
-   - PlantUML: write the `@startuml…@enduml` body to `/tmp/diagram.puml`, then `java -jar wiki/.obsidian/plantuml/plantuml.jar -tpng /tmp/diagram.puml` (use `-tsvg` to match the vault default if you prefer).
-2. **Confirm.** `Read` the PNG: did the diagram draw, or is there an error box / empty render? For PlantUML this also confirms the Java + JAR + GraphViz chain actually produced output.
-3. **Clean up.** The temp files are tool scratch — keep them out of `wiki/` and delete them after.
-
-**Method B — Obsidian live-vault screenshot (interactive / main-checkout only).** Use when you want to see the diagram *in page context* (embeds, callouts, surrounding prose) in the running app.
-
-1. **Gate.** Needs the Obsidian CLI enabled and Obsidian running — the conditional gate under the `obsidian-cli` skill. Check it first (`pgrep -x Obsidian` and `obsidian help`). The CLI is the first-party binary enabled via Settings → General → Advanced → "Command line interface".
-2. **Render and capture.** Focus the page (`obsidian read path="wiki/<…>.md"`), ensure Reading/Live-Preview view so the diagram draws, then screenshot **outside** the vault: `obsidian dev:screenshot path="/tmp/diagram-check.png"`. Optionally `obsidian dev:errors` for a silent parse failure.
-3. **Confirm + clean up** as in Method A.
-
-> [!warning] The live vault is the **main checkout**, not your worktree branch
-> Obsidian runs against the main-checkout `wiki/` on whatever branch *it* has checked out (usually `main`) — it does **not** see a `claude/*` worktree's edits. So Method B cannot render unmerged worktree pages directly. Use **Method A** for those. Do **not** repoint the live vault at a branch: there is one Obsidian instance against many worktrees, so repointing is a global mutex and parallel sessions would cross-contaminate each other's screenshots (and git won't check the same branch out twice anyway). As a last resort only, drop an **ephemeral, per-branch-namespaced** scratch note (`wiki/_diagcheck-<branch>.md`) into the live vault holding just the diagram, screenshot it, then delete it — but this still shares the one Obsidian instance, so it is not safe to run from multiple sessions concurrently.
+> [!warning] The live vault is the main checkout, not your worktree
+> Obsidian renders the main-checkout `wiki/` on its own branch (usually `main`) — it does **not** see worktree edits, so Method B can't render unmerged worktree pages; use Method A. Don't repoint the live vault at a branch: one Obsidian instance serves all worktrees, so repointing is a global mutex that cross-contaminates parallel screenshots (and git won't check the same branch out twice). Last resort: a per-branch scratch note (`wiki/_diagcheck-<branch>.md`), screenshot, delete — still not concurrency-safe.
 
 > [!important] Edit the worktree's own `wiki/`, not the main checkout
-> `wiki/` is tracked, so it exists as a **separate working copy in every worktree**. A session running in `…/.claude/worktrees/<name>/` must write to that worktree's `wiki/…`, not the main-checkout `wiki/…` — editing the main copy puts changes on `main` outside your branch and they won't be in your commit. Verify cwd before editing.
+> `wiki/` exists as a separate working copy per worktree. Write to the worktree's `wiki/…`, not the main checkout — editing the main copy lands changes on `main` outside your branch. Verify cwd first.
 
-**Fallback.** If neither renderer is available *and* the CLI gate fails, do a careful syntax self-check, state the diagram is *rendered-unverified* — never claim it renders when I haven't seen it. This is the diagram equivalent of the "absence is a claim" rule: don't assert a render I haven't observed.
+**Fallback:** if no renderer is available and the CLI gate fails, do a syntax self-check and label the diagram *rendered-unverified*. Never claim a render you haven't observed (the diagram form of "absence is a claim").
 
-**Storage.** Images live under `wiki/attachments/<entity-type>/<page-slug>/<descriptive-name>.<ext>`, mirroring the entity structure. So a figure on the `sources/strengholt-medallion-ch03.md` page lives at `wiki/attachments/sources/strengholt-medallion-ch03/medallion-overview.png`. Use kebab-case filenames that describe content (`medallion-overview.png`, `gartner-time-2x2.png`), optionally including source coordinates when lineage matters (`fig-3-1-medallion-flow.png`).
+**Storage.** `wiki/attachments/<entity-type>/<page-slug>/<name>.<ext>`, mirroring entity structure — e.g. a figure on `sources/strengholt-medallion-ch03.md` → `wiki/attachments/sources/strengholt-medallion-ch03/medallion-overview.png`. Kebab-case, content-describing filenames; add source coordinates when lineage matters (`fig-3-1-medallion-flow.png`).
 
-**Embedding.** Use Obsidian's embed syntax with relative paths: `![[attachments/sources/<slug>/<image>.png]]`. Always include a one-line caption directly under the embed, in prose, that says what the image shows and why it's on this page. If the image is from a `raw/` source, cite the source page in the caption (`Source: [[strengholt-medallion-ch03]], figure 3.1`).
+**Embedding.** `![[attachments/sources/<slug>/<image>.png]]`, with a one-line prose caption under it saying what the image shows and why it's here. Cite the source page if from `raw/` (`Source: [[strengholt-medallion-ch03]], figure 3.1`).
 
-**Selection — judge by the page's image relevance, then bias toward more.** The right number of images is a property of *the page*, not its entity type. Ask first: how visual is this subject? Some pages are *about* visual structure and want many diagrams; others carry their meaning in prose and want few or none. Set the soft cap from the subject, then bias toward inclusion within it.
+**Selection — judge by the page's image relevance, then bias toward more.** Image count is a property of the page, not its entity type:
+- **High** (subject *is* visual structure — notations, reference architectures, topology, process flows): many figures, 8–15+; the diagrams are the content.
+- **Medium** (benefits from a visual but doesn't hinge on one — most `concepts/`, `frameworks/`, `cases/`, chapter `sources/`): ~2–6, more if the source is image-dense, 1–2 if thin.
+- **Low** (conceptual/argumentative/definitional — ADRs, terminology, governance text): zero is correct; don't manufacture a diagram for a quota.
+- `analyses/`: scale to the synthesis, up to ~10 for a visually broad essay, fewer for a tight argument.
 
-- **High image relevance** — the page's subject *is* visual structure: diagramming notations (ArchiMate, C4, UML), reference architectures, topology/layering, process flows, modelling patterns. These warrant many figures — a notation or architecture page can reasonably carry 8–15+; the diagrams *are* the content, not decoration.
-- **Medium image relevance** — the subject benefits from a visual but doesn't hinge on it: most `concepts/`, `frameworks/`, `cases/`, chapter-length `sources/`. Roughly 2–6 figures; more if the source is image-dense (decks, books with diagrams every few pages), 1–2 if it's thin.
-- **Low image relevance** — the subject is conceptual, argumentative, or definitional and a diagram would add little: ADR-style pages, terminology notes, short prose arguments, governance/policy text. Zero images is the correct answer here — don't manufacture a diagram to hit a quota.
-- `analyses/`: scale to the synthesis — up to ~10 figures for a page pulling together many visual concepts; fewer for a tightly-argued essay.
+**Text diagrams (Mermaid, PlantUML) don't count toward the cap** — they're versioned, diff-able source text; use them as liberally as the page benefits. The soft caps govern only **committed binary files** (screenshots, PNG/JPG/SVG exports, photos), which cost repo bytes and can't be diffed.
 
-**Text-based diagrams (Mermaid, PlantUML) do NOT count toward the image soft cap.** They are source text that happens to render as a picture at view time — versioned, diff-able, cheap to add and remove. Use them as liberally as the page benefits from, independent of any cap. The soft caps above govern only **committed binary image files** (screenshots, PNG/JPG/SVG exports, photographs) — the things that cost repo bytes and can't be diffed. A page can carry a dozen Mermaid diagrams and still count as having zero images against the cap.
+**Skip a committed image only if** (a) pure decoration, (b) it duplicates an image or text diagram already on the page, (c) the subject is low-relevance, or (d) it would commit confidential/PII material. Prefer a text diagram over a committed image whenever it captures the structure.
 
-**When in doubt, include — but include the right kind.** The wiki is a personal KB, not a public reference; generosity beats minimalism for pages where visuals carry meaning. Prefer a text-based diagram (free, diff-able) over a committed image whenever it captures the structure. Only skip a *committed image* if (a) it's pure decoration with no informational content, (b) it duplicates an image or text diagram already on the page, (c) the subject has low image relevance, or (d) it would commit client-confidential or PII material to git that you don't want there.
-
-**What not to commit.** No high-res scans where a tightly-cropped screenshot of the relevant region would do. No screenshots of plain text you could transcribe instead. Mind confidentiality: if the repo is shared or public, do not commit client-confidential or PII material. Set the owner's confidentiality posture at init ({{CONFIDENTIALITY_NOTE}}) and focus on signal-to-bytes within it.
+**What not to commit:** high-res scans where a tight crop would do; screenshots of plain text you could transcribe; confidential/PII material in a shared/public repo (set posture at init — {{CONFIDENTIALITY_NOTE}}).
 
 **File hygiene.**
-- Compress before committing (PNGs through `pngquant`/`oxipng`, JPGs through `jpegoptim`; aim for <500 KB per image, <200 KB where possible).
-- Crop tightly to the load-bearing region — don't commit half a page of whitespace.
-- When a page is deleted or renamed, update or delete the matching `attachments/<entity>/<slug>/` folder.
+- Compress before committing (PNG via `pngquant`/`oxipng`, JPG via `jpegoptim`; aim <500 KB, ideally <200 KB).
+- Crop tightly to the load-bearing region.
+- On page delete/rename, update or delete the matching `attachments/<entity>/<slug>/` folder.
 
-**Lint additions (Phase 2 of `lint`).**
-- Orphan attachment folders (no page references them) — flag for deletion.
-- Pages with no images where the source material is visually rich — flag as "consider adding image" candidates, not hard errors.
-- Repo-size delta since last lint; alert if attachments grew by >50 MB in one pass (early warning for Git LFS need).
-- Mermaid-candidate scan: image files that could plausibly be replaced or supplemented by a text diagram (heuristic: simple shapes, few colours, structural content) — propose Mermaid drafts.
-- Broken `![[]]` embeds (file moved or deleted but reference remains).
+**Lint additions (Phase 2).**
+- Orphan attachment folders → flag for deletion.
+- Visually-rich pages with no images → "consider adding image" (soft, not an error).
+- Repo-size delta; alert if attachments grew >50 MB in one pass (Git LFS early warning).
+- Mermaid-candidate scan: simple-shape image files a text diagram could replace → propose drafts.
+- Broken `![[]]` embeds.
 
-**During `ingest`.** Step 3 (source page creation) includes diagram extraction:
-- Skim the raw artefact for figures, diagrams, screenshots, 2×2s, frameworks, model visualisations.
-- For each, decide: redraw as Mermaid (structural, portable wins), screenshot from source (iconic, source-bound styling), both (when each adds distinct value), or skip (decorative, redundant).
-- Aim high on inclusion — when uncertain, include.
-- Cross-link extracted images into the derived `concepts/` and `frameworks/` pages where the image is more germane to the derived concept than the parent source.
+**During `ingest`** (step 3, diagram extraction): skim the artefact for figures/2×2s/frameworks; for each decide redraw-as-Mermaid / screenshot / both / skip; lean to include; cross-link extracted images into derived `concepts/` and `frameworks/` pages where more germane there than on the source.
 
-**During `capture`.** Inbox notes embed images freely — they're pre-triage. During lint, image-bearing inbox notes either earn their image's place in the promoted entity page (subject to the soft caps above) or the image moves with the note when it's filed.
+**During `capture`:** inbox notes embed images freely (pre-triage); at lint the image either earns its place in the promoted page or moves with the note when filed.
 
-**Why no media notes.** This wiki's `sources/` and `concepts/` pages already contextualise images — entity pages provide the metadata layer that media notes would otherwise add. Adding a third layer (one `.md` per image) duplicates work for no information gain. Caption + alt-text + surrounding prose carries the contextualisation.
+**No per-image media notes:** caption + surrounding prose already contextualise; a third layer (one `.md` per image) adds work, not information.
 
 ---
 
@@ -293,7 +281,7 @@ For non-ArchiMate PlantUML (sequence diagrams, C4 with the `C4-PlantUML` stdlib,
 
 When a new term appears, add it to `glossary.md`. Use the canonical term consistently across pages. Flag conflicts explicitly. Note regional and regulatory variants where they matter. Default to the owner's locale conventions ({{LOCALE_DEFAULTS}} — e.g. metric units, EUR, EU regulatory framing).
 
-**Alias bridge (load-bearing for recall).** When a concept is filed under a canonical term but is known in the field by a vendor/client/practitioner label, record the alias in the glossary pointing at the canonical page — e.g. *"Product & Capability Model (PCM, vendor label) → [[product-and-platform-operating-model]]"*. This is the cheap fix for the recurring failure mode where I'm asked about a field term ("the McKinsey thing the client calls X") and the wiki holds the substance under a different name, so a literal search misses it. Do this proactively at `ingest` time for any practitioner/vendor synonym, not just reactively after a miss. The glossary is the wiki's synonym index: an alias recorded here turns a future lexical search on the field term into a hit.
+**Alias bridge (load-bearing for recall).** When a concept is filed under a canonical term but known in the field by a vendor/client/practitioner label, record the alias in the glossary pointing at the canonical page — e.g. *"Product & Capability Model (PCM) → [[product-and-platform-operating-model]]"*. This fixes the recurring miss where I ask about a field term ("the McKinsey thing the client calls X") but the wiki holds the substance under another name, so a literal search fails. Do it proactively at `ingest` time for any vendor/practitioner synonym, not just after a miss. The glossary is the synonym index: an alias here turns a future lexical search on the field term into a hit.
 
 ---
 
@@ -342,7 +330,7 @@ No glossary update, no index update, no cross-linking. Triage happens during `li
    - Read `index.md` *by section* (heading outline first, then load the relevant section), and *grep* `glossary.md` for the term — don't read either whole.
    - Run multi-term / OR-alternation ripgrep across **all** entity folders (`sources/ concepts/ frameworks/ analyses/ cases/ questions/`), not just the obvious one. Search the canonical term **and** synonyms; check the glossary alias for vendor/field/client labels; search filenames (kebab-case), not only body text.
    - Expand from the nearest hit along the graph: follow its `[[links]]`, and pull pages that share a `sources:` entry or a `#domain:` / `#kb:` tag (shared-source and shared-tag are strong relevance signals — often stronger than a direct link).
-   - **Absence is a claim, not a default.** Never state "X is not in the wiki" without having actually searched for it under multiple terms. When the query term is ambiguous, or is a field/vendor/client label, resolve *every* reading before answering — don't commit to one reading and declare the rest absent. If a search genuinely comes up empty, say "I didn't find it under the terms I searched: [list them]" — never a flat "it's not here," which hides the vocabulary gap that may be the real cause.
+   - **Absence is a claim, not a default.** Never say "X isn't in the wiki" without searching multiple terms first. If the term is ambiguous or a field/vendor/client label, resolve *every* reading before answering. On a genuine miss, say "I didn't find it under the terms I searched: [list them]" — not a flat "it's not here," which hides the vocabulary gap that's often the real cause.
 2. Synthesise a clear answer with citations to wiki pages (`[[links]]`).
 3. If the question matches an existing page in `questions/`, update that page — set `last-ruminated`, refine the body, adjust `status` if my thinking has actually shifted. **This is rumination — it lives inside query, not as a separate workflow.**
 4. If it doesn't match an existing question, ask whether to file it as a new question page or as an analysis. File accordingly.
@@ -431,10 +419,10 @@ Three provenances, all committed-or-installed honestly (see [`NOTICE`](NOTICE)):
 | ⬇ `obsidian-cli` | "interact with my vault", live operations on the active Obsidian instance | **Conditional — see below.** Use only when Obsidian is running *and* the CLI is materially faster than `rg`/`fd`. |
 | ⬇ `json-canvas` | `.canvas` files; mind maps, flowcharts | Domain-coverage canvases, concept-cluster maps, case-study network diagrams. Niche but cheap. |
 | ⬇ `defuddle` | URLs to non-`.md` web pages | First-line tool for web-sourced `ingest`: cleans clutter before WebFetch. Requires `npm install -g defuddle`. |
-| `deep-recon` | `/deep-recon <topic>`, "brainstorm deeply", "stress-test this idea" | Multi-agent reconnaissance for `query` rumination and pre-essay scoping. Voice-anchored to [[voice-guide]]. Only the final deliverable lands in the wiki, routed to its earned home by content type (essay → `analyses/`, update → in-place on the relevant page, half-formed → `inbox/`) — same routing as any `query` output. Intermediate agent files are tool scratch, not wiki content; see `SKILL.md` for the staging convention. |
+| `deep-recon` | `/deep-recon <topic>`, "brainstorm deeply", "stress-test this idea" | Multi-agent reconnaissance for `query` rumination and pre-essay scoping; voice-anchored to [[voice-guide]]. Only the final deliverable lands in the wiki, routed by type like any `query` output (essay → `analyses/`, update → in-place, half-formed → `inbox/`); intermediate agent files are scratch (see `SKILL.md`). |
 
 > [!note] Publishing to Confluence
-> Earlier foundations bundled a `confluence-edit` skill. It is **not** part of this scaffold (it is Anthropic-bundled and not universally useful). If you want to publish wiki material to Confluence, add it in your own wiki via `/plugin` (the Anthropic `anthropic-skills:confluence-edit`), and re-anchor its prose to [[voice-guide]].
+> To publish wiki material to Confluence, add the Anthropic `anthropic-skills:confluence-edit` skill via `/plugin` and re-anchor its prose to [[voice-guide]]. It is not bundled with this scaffold.
 
 ### `obsidian-cli` — conditional gate
 
@@ -461,7 +449,7 @@ If in doubt, use the file-level tools — they're deterministic and don't depend
 
 ### Semantic search — Smart Connections (Obsidian)
 
-The vault ships with the **Smart Connections** community plugin (under `wiki/.obsidian/plugins/smart-connections/`). It runs a **local embedding model** (downloaded once into `wiki/.smart-env/`, no API key, no external service) and maintains an incremental vector index that updates as pages are edited — so it never goes stale the way a manually-rebuilt index would. Its job is to catch the **vocabulary-mismatch** recall failure: surfacing related notes when a query uses different words than the page (the failure mode that is otherwise the glossary alias bridge's responsibility). It's an aid to *browsing in Obsidian* (the "Connections" pane and semantic search box), not a tool callable from a Claude Code session — in-session recall still relies on the `query` search protocol above plus the glossary aliases. The plugin **code** (`main.js`, `manifest.json`, `styles.css`) is **not** committed — install it from Obsidian's community plugin browser like the PlantUML plugin (it is listed in `community-plugins.json`). Its **runtime embeddings store** (`wiki/.smart-env/`) and local settings (`data.json`) are gitignored (machine-specific, regenerated on demand).
+The vault ships with the **Smart Connections** community plugin (`wiki/.obsidian/plugins/smart-connections/`). It runs a local embedding model (`wiki/.smart-env/`, no API key, no external service) and keeps an incremental vector index, catching the **vocabulary-mismatch** recall failure — related notes whose words differ from the query (the glossary alias bridge's job, done semantically). It's a *browsing* aid in Obsidian (Connections pane, semantic search), **not** callable from a Claude Code session: in-session recall still uses the `query` protocol above plus glossary aliases. Plugin code is not committed — install from Obsidian's community browser like the PlantUML plugin (listed in `community-plugins.json`); the embeddings store (`wiki/.smart-env/`) and `data.json` are gitignored, regenerated on demand.
 
 ### Voice anchor
 
@@ -491,13 +479,13 @@ When an output is an applied artifact (ADR, lesson plan, exam answer, project de
 The wiki is a git repo. Sessions usually run inside a worktree on a branch named `claude/<slug>`. Two rules apply when committing work:
 
 1. **Commit per logical unit of work.** A workflow step (`ingest` / `capture` / `query` / `lint` / case write-up / etc.) commits when it completes, with a message that names the workflow and the artefact. Don't accumulate unrelated changes into one commit.
-2. **Push the branch to the remote, do not leave it local-only.** Whenever you commit on a `claude/*` branch, immediately push with `git push -u origin <branch>` (the `-u` is required the first time so the branch is created on the remote and the upstream is set). This makes the branch visible, reviewable from any device, and recoverable if the local worktree is lost. **A commit that only exists locally is treated as not-yet-done.**
+2. **Push the branch to the remote, do not leave it local-only.** Whenever you commit on a `claude/*` branch, immediately push it (see the recipe below for the exact command). This makes the branch visible, reviewable from any device, and recoverable if the local worktree is lost. **A commit that only exists locally is treated as not-yet-done.**
 
 Never push to `main` directly. Integration into `main` happens through a PR and `gh pr merge`.
 
 ### Default shipping path — the `pr-manager` agent
 
-**When a workflow unit (`ingest` / `capture` / `query` / `lint` / case write-up / etc.) is committed and ready, ship it via the `.claude/agents/pr-manager.md` subagent by default — proactively, without being asked.** Once a unit is done and committed, invoke pr-manager on your own (in the session that just created or edited the agent file, run the same lifecycle manually instead, since the subagent isn't invocable until the next session). It runs the full lifecycle — opens the PR, reviews it, resolves conflicts against `main`, and merges.
+**When a workflow unit (`ingest` / `capture` / `query` / `lint` / case write-up / etc.) is committed and ready, ship it via the `.claude/agents/pr-manager.md` subagent by default — proactively, without being asked.** Once a unit is done and committed, invoke pr-manager on your own. It runs the full lifecycle — opens the PR, reviews it, resolves conflicts against `main`, and merges. (The session that first creates or edits the agent file is the exception — see the Note below.)
 
 If the owner prefers a manual confirm-before-merge gate instead of full autonomy, that is set at init ({{SHIPPING_AUTONOMY}}); the agent still opens and reviews the PR but stops before merge. Absent that preference, treat a finished, committed unit as ready to ship. If you're genuinely unsure whether a unit is "done" (mid-task, half-formed, or the owner is clearly still iterating), wait — don't ship work in progress.
 
@@ -515,7 +503,7 @@ The standard sequence after finishing a unit of work, inside a worktree:
 ```
 git add <specific files>
 git commit -m "<workflow>: <artefact>"
-git push -u origin <current-branch>      # first push of the branch
+git push -u origin <current-branch>      # -u creates the branch on the remote + sets upstream (first push only)
 # then hand off to the pr-manager agent to open → review → merge the PR
 ```
 
@@ -530,4 +518,4 @@ Note: the `pr-manager` agent only becomes invocable as a subagent in a session s
 - Prefer updating existing pages over creating new ones when content fits.
 - The wiki is a git repo of markdown — everything is versioned automatically.
 - Binary attachments under `wiki/attachments/` are committed normally. Keep individual images under ~500 KB and the overall attachments tree under ~500 MB. If you cross that, move to Git LFS — but don't pre-emptively set it up.
-- Default to the owner's locale conventions ({{LOCALE_DEFAULTS}}) where it matters.
+- Locale conventions: see Terminology discipline.
