@@ -412,7 +412,7 @@ Fixes applied: ...
 Skills live under `.claude/skills/` to make Obsidian-native conventions executable and to support deep reconnaissance work. **CLAUDE.md is the authoritative spec — these skills are *executable adjuncts*, not rule sources.** If a skill's defaults conflict with anything in this file (entity schema, frontmatter taxonomy, source-first principle, workflow names, tag prefixes, voice anchor), this file wins. Skills are invoked when their trigger conditions match, but they bend to the wiki's conventions, not the other way around.
 
 Three provenances, all committed-or-installed honestly (see [`NOTICE`](NOTICE)):
-- **The wiki's own** (Apache-2.0, committed): `init-wiki`, the `pr-manager` agent, and `voice-interview` (co-authored by the owner with LLM assistance and informed by public guidance on writing with LLMs — no third-party source redistributed in it).
+- **The wiki's own** (Apache-2.0, committed): `init-wiki`, the `pr-manager` agent, `voice-interview` (co-authored by the owner with LLM assistance and informed by public guidance on writing with LLMs — no third-party source redistributed in it), and `critical-reviewer` (owner-authored anti-sycophancy review skill, invoked by the `pr-manager` agent's review gate — no third-party text reproduced).
 - **Adapted third-party** (committed, with attribution): `deep-recon` is adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon) (MIT) — voice-anchored to this wiki and re-routed to its entity folders. The upstream MIT notice is reproduced in `NOTICE`.
 - **Installed, not committed** (the **⬇** rows below): the Obsidian-native skills from [`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills) (Steph Ango's official Agent Skills, MIT), installed by `setup.sh` / `setup.ps1` into `.claude/skills/` (gitignored). Install with the setup script or `/plugin marketplace add kepano/obsidian-skills`.
 
@@ -426,6 +426,7 @@ Three provenances, all committed-or-installed honestly (see [`NOTICE`](NOTICE)):
 | ⬇ `json-canvas` | `.canvas` files; mind maps, flowcharts | Domain-coverage canvases, concept-cluster maps, case-study network diagrams. Niche but cheap. |
 | ⬇ `defuddle` | URLs to non-`.md` web pages | First-line tool for web-sourced `ingest`: cleans clutter before WebFetch. Requires `npm install -g defuddle`. |
 | `deep-recon` | `/deep-recon <topic>`, "brainstorm deeply", "stress-test this idea" | Multi-agent reconnaissance for `query` rumination and pre-essay scoping; voice-anchored to [[voice-guide]]. Only the final deliverable lands in the wiki, routed by type like any `query` output (essay → `analyses/`, update → in-place, half-formed → `inbox/`); intermediate agent files are scratch (see `SKILL.md`). |
+| `critical-reviewer` | "be critical", "stress-test this", "devil's advocate", "what am I missing", "no flattery" | Anti-sycophancy adversarial review. Invoked by the `pr-manager` agent before it reviews a PR, and on demand when you want work challenged rather than affirmed. |
 
 > [!note] Publishing to Confluence
 > To publish wiki material to Confluence, add the Anthropic `anthropic-skills:confluence-edit` skill via `/plugin` and re-anchor its prose to [[voice-guide]]. It is not bundled with this scaffold.
