@@ -76,12 +76,13 @@ Clone, install a small set of prerequisites plus two Obsidian community plugins,
 
 ```bash
 brew install --cask obsidian
-brew install git gh openjdk graphviz jq
+brew install git gh openjdk graphviz jq librsvg
 ```
 
 - **Obsidian** — the vault browser (the repo is an Obsidian vault under `wiki/`).
 - **git / gh** — version control and PR lifecycle (the `pr-manager` agent uses `gh`).
 - **jq** — required by the committed Claude Code hooks (`.claude/hooks/`); the write guard fails closed (denies all writes) without it.
+- **librsvg** — provides `rsvg-convert`, the render check for designed-SVG figures (diagram track 3 in `CLAUDE.md`).
 - **OpenJDK** — runs the PlantUML JAR for ArchiMate / C4 diagrams (you download the JAR once in step 6).
 - **GraphViz** — required for ArchiMate / class / ER / activity diagrams (sequence diagrams skip it).
 
@@ -136,7 +137,8 @@ Then in Obsidian: **Settings → Community plugins → Browse**, and install **P
 ### What ships in the repo
 
 - **Obsidian config** under `wiki/.obsidian/` — which plugins to enable (`community-plugins.json`), PlantUML settings (`obsidian-plantuml/data.json`), core-plugin selections (Bases, Daily Notes, Properties, …). The plugin *code* and the PlantUML JAR are **not** committed — see step 6.
-- **Claude Code skills** under `.claude/skills/` — `init-wiki` and `voice-interview` (the wiki's own) and `deep-recon` (adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon), MIT, attributed in [`NOTICE`](NOTICE)) — plus the **`pr-manager` agent** under `.claude/agents/`.
+- **Claude Code skills** under `.claude/skills/` — `init-wiki` and `voice-interview` (the wiki's own), `deep-recon` (adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon), MIT, attributed in [`NOTICE`](NOTICE)), and `diagram-syntax` (owner-authored orchestration + ArchiMate reference over Mermaid/PlantUML reference files vendored from [`tractorjuice/arc-kit`](https://github.com/tractorjuice/arc-kit), MIT, attributed in [`NOTICE`](NOTICE)) — plus the **`pr-manager` agent** under `.claude/agents/`.
+- **The ingest-coverage tool** at `wiki/_resources/ingest-coverage.py` — a generated `raw/` → wiki coverage manifest backing the `sources:` completeness rule (design note beside it; shipped dormant, activate per its *Activation* section).
 - **Claude Code hooks** under `.claude/hooks/`, wired by the committed `.claude/settings.json`: `guard-raw.sh` enforces `raw/` immutability and blocks credential-shaped content at write time (tests beside it in `guard-raw.test.sh`), and `session-start.sh` reports skills that are declared in the `CLAUDE.md` skills table but missing on disk, so a session never silently claims a skill it doesn't have. Both need `jq` (step 1).
 - **All authoring conventions** in `CLAUDE.md`.
 
