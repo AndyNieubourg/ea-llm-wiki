@@ -156,11 +156,15 @@ as those licenses require.
 The repository's own work, under this project's Apache-2.0 license, is: the
 operating manual (CLAUDE.md), the directory structure / workflows / taxonomy,
 the small Obsidian config (which plugins to enable, PlantUML SVG/local-JAR
-settings), the `init-wiki` skill, the `pr-manager` agent, and the
+settings), the `init-wiki` skill, the `pr-manager` agent, the
 `voice-interview` skill (co-authored by the owner with LLM assistance and
 informed by public guidance on writing with LLMs; no third-party source is
-redistributed in it), and the `critical-reviewer` skill (owner-authored;
-informed by the sources noted above, with no third-party text reproduced). The
+redistributed in it), the `critical-reviewer` skill (owner-authored;
+informed by the sources noted above, with no third-party text reproduced),
+and the `pyramid-structure` skill (owner-authored; an operationalisation of
+publicly documented method — Barbara Minto's Pyramid Principle, SCQA, MECE,
+and standard consulting deck practice — expressed in the owner's own words,
+with no third-party text reproduced). The
 `deep-recon` skill and the vendored reference files inside `diagram-syntax` are
 the adapted MIT components noted above. The third-party tools listed earlier
 are installed separately, not redistributed here.
