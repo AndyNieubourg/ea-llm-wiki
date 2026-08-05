@@ -120,7 +120,7 @@ type: source | concept | framework | question | case | analysis | lesson | exerc
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 tags: [list]
-sources: [filenames in raw/ that informed this page]   # if applicable
+sources: [filenames in raw/ that informed this page]   # if applicable — see completeness rule below
 confidence: settled | working | speculative | single-source   # optional, mainly concept/analysis pages
 relationships:                                                # optional, structured typed links — see Relationships taxonomy below
   extends: [page-a, page-b]
@@ -140,6 +140,8 @@ status: open | converging | answered | dropped
 last-ruminated: YYYY-MM-DD
 gap: <free text — what's missing to answer this fully>
 ```
+
+**`sources:` completeness rule.** List **every** raw basename a page reflects, even when the page also cites a URL or bundles several files (e.g. a per-chapter book hub, a cluster page). The `sources:` field is the machine-readable record of "this raw file is ingested" — the ingest-coverage manifest and any future un-ingested sweep trust it. A page that ingests a file's substance but omits its basename makes that file look un-ingested (the recurring false-positive). Index-only pages that deliberately *don't* transcribe their files are the one exception — they carry the titles in the body, not in `sources:`. Coverage tool + its rules: `wiki/_resources/ingest-coverage.md`.
 
 After frontmatter:
 1. One-line summary (used in `index.md`).
@@ -190,11 +192,14 @@ The `confidence:` field is similarly optional. Default behaviour: omit unless th
 
 The wiki uses images where they carry the concept, not as decoration. **Bias toward inclusion:** removing a redundant image later is cheap; reconstructing visual context after the source has slipped from memory is expensive.
 
-**Three tracks, in order of preference:**
+This section is **policy**: which track, whether a figure earns its place, where it is stored, how it is verified. The **syntax** lives in the `diagram-syntax` skill (Mermaid per-type references, PlantUML and the Hosiaisluoma ArchiMate macros, C4 layout science, the render-verify loop). Load it when you author or debug a diagram; this file still decides the track.
 
-1. **Mermaid (default)** — flowcharts, sequence, state, class/ER, mindmap, gantt, quadrant, xychart, simple component/layer graphs. Renders natively in Obsidian (no plugin, no server). Prefer it when structure is the message and portability matters.
+**Four tracks, in order of preference:**
+
+1. **Mermaid (default)** — flowcharts, sequence, state, class/ER, mindmap, gantt, quadrant, xychart, simple component/layer graphs. Renders natively in Obsidian (no plugin, no server). Prefer it when structure is the message: the source is the diagram, so it diffs cleanly, stays portable, and a later session can read and edit it.
 2. **PlantUML** — ArchiMate (Strategy/Motivation/Business/Application/Technology with correct shapes/colours), C4 (context/container/component), and notations Mermaid lacks. Rendered by the **`obsidian-plantuml`** plugin (under `wiki/.obsidian/plugins/`) via the local JAR at `wiki/.obsidian/plantuml/plantuml.jar`. Prereq: `brew install openjdk graphviz` plus the symlink (see `wiki/.obsidian/plantuml/README.md`). Falls back to the public PlantUML server if local rendering fails.
-3. **Committed image files (fallback)** — only when text diagrams lose meaning: iconic source screenshots (Gartner 2×2s, Magic Quadrants, reference-architecture figures, the EU AI Act risk pyramid), photographs (whiteboards, slides), hand-laid ArchiMate exports from Archi. Stored as binaries in git.
+3. **Designed SVG** (hand-/script-authored) — only for *hero figures on deliverable/portfolio pages* whose value is bespoke layout or heat/colour encoding Mermaid can't do (heatmaps, matrices, dashboards, layered architecture with overlays). Three required conditions, because the SVG is opaque to readers and later sessions: every load-bearing claim and its rationale live in the **markdown** (not only the figure); the **generator script is committed beside the SVG**; the **caption carries the message**. Verify with `rsvg-convert` before commit. Not for the atomic-note KB core — that stays Mermaid.
+4. **Committed raster (fallback)** — only when even a designed vector loses meaning: iconic source screenshots (Gartner 2×2s, Magic Quadrants, reference-architecture figures, the EU AI Act risk pyramid), photographs (whiteboards, slides), hand-laid ArchiMate exports from Archi. Stored as binaries in git.
 
 Tracks compose: include both an iconic source image and a redrawn Mermaid version when each adds distinct value.
 
@@ -209,9 +214,9 @@ title <descriptive title>
 skinparam linetype ortho
 ```
 
-Element macros: `<Layer>_<Element>(id, "label")` — e.g. `Motivation_Goal(g1, "…")`, `Business_Process(bp, "…")`, `Application_Component(ac, "…")`, `Strategy_Capability(c, "…")`. Relationship macros: `Rel_<Type>(source, target)` — e.g. `Rel_Realization(g2, g1)`, `Rel_Influence(d1, g1)`. For non-ArchiMate PlantUML (sequence, C4 via `C4-PlantUML`, deployment), include the relevant stdlib and omit the ArchiMate include.
+Element macros: `<Layer>_<Element>(id, "label")` — e.g. `Motivation_Goal(g1, "…")`, `Business_Process(bp, "…")`. Relationship macros: `Rel_<Type>(source, target)` — e.g. `Rel_Realization(g2, g1)`. The full per-layer macro tables, the macros that do **not** exist in the stdlib, and worked views live in the `diagram-syntax` skill (`references/archimate-hosiaisluoma.md`) — use it rather than guessing macro names. For non-ArchiMate PlantUML (sequence, C4 via `C4-PlantUML`, deployment), include the relevant stdlib and omit the ArchiMate include.
 
-**Choice:** ArchiMate any-layer, C4, and UML deployment → PlantUML; everything else, and anything where portability matters → Mermaid.
+**Choice:** ArchiMate any-layer, C4, UML deployment → PlantUML; bespoke-layout / heat / matrix / dashboard hero figures on deliverable or portfolio pages → designed SVG (claims in markdown, generator committed); everything else, and anything where portability or later-session maintainability matters → Mermaid.
 
 **Output: SVG by default** (scales cleanly, better for labelled ArchiMate). Per-block override with ` ```plantuml-png ` or ` ```plantuml-ascii `.
 
@@ -257,7 +262,7 @@ A diagram isn't *done* until confirmed to render: a malformed block shows as an 
 - **Low** (conceptual/argumentative/definitional — ADRs, terminology, governance text): zero is correct; don't manufacture a diagram for a quota.
 - `analyses/`: scale to the synthesis, up to ~10 for a visually broad essay, fewer for a tight argument.
 
-**Text diagrams (Mermaid, PlantUML) don't count toward the cap** — they're versioned, diff-able source text; use them as liberally as the page benefits. The soft caps govern only **committed binary files** (screenshots, PNG/JPG/SVG exports, photos), which cost repo bytes and can't be diffed.
+**Text diagrams (Mermaid, PlantUML) and designed SVG don't count toward the cap** — they're versioned source text (the SVG paired with its committed generator); use them as the page benefits. The soft caps govern only **committed binary files** (screenshots, PNG/JPG, machine-exported SVG, photos), which cost repo bytes and can't be diffed.
 
 **Skip a committed image only if** (a) pure decoration, (b) it duplicates an image or text diagram already on the page, (c) the subject is low-relevance, or (d) it would commit confidential/PII material. Prefer a text diagram over a committed image whenever it captures the structure.
 
@@ -371,6 +376,13 @@ The compounding workflow. Run weekly, after a batch of ingests, or on demand. Tw
   - *Systemic gaps* — recurring `gap` strings across multiple question pages; persistent blind spots.
 - **Rumination candidates** — questions whose `last-ruminated` date is old enough to warrant re-asking.
 - **Log rotation** — if `wiki/log.md` holds entries from more than the current month, roll each completed month into `wiki/log/YYYY-MM.md`, leaving the current month plus a one-line pointer block to the archive in `log.md`. Keeps the file the session-start checklist reads small; append-only growth otherwise pushes it past 1 MB.
+- **Skills-table drift check** — the Skills table below is hand-maintained and silently drifts from the skills that actually exist. Run from the repo root:
+
+  ```bash
+  diff <(ls .claude/skills/ | sort) <(grep -E '^\| (⬇ )?`[a-z][a-z-]*`' CLAUDE.md | sed -E 's/^\| (⬇ )?`([a-z-]+)`.*/\2/' | sort -u)
+  ```
+
+  Silence is a pass. A `<` line is a skill on disk with no table row; a `>` line is a row for a skill that is absent — fix the table for the first, and for the second either run `setup.sh` (if it is a ⬇ installed skill) or investigate why a committed skill is gone. The `session-start.sh` hook reports the declared-but-missing half of this automatically at session start; the lint check adds the reverse direction (present-but-undeclared).
 - **Domain coverage scan** — for each `#domain:<name>` tag listed in [[domains]]. **Rebuild `wiki/coverage.md`** from this scan as a materialised matrix; `wiki/coverage.base` is the live companion view. Per-domain metrics (counts alone are weak signal — track the relative and qualitative dimensions too):
 
   | Metric | Definition | Why it matters |
@@ -413,7 +425,7 @@ Skills live under `.claude/skills/` to make Obsidian-native conventions executab
 
 Three provenances, all committed-or-installed honestly (see [`NOTICE`](NOTICE)):
 - **The wiki's own** (Apache-2.0, committed): `init-wiki`, the `pr-manager` agent, `voice-interview` (co-authored by the owner with LLM assistance and informed by public guidance on writing with LLMs — no third-party source redistributed in it), and `critical-reviewer` (owner-authored anti-sycophancy review skill, invoked by the `pr-manager` agent's review gate — no third-party text reproduced).
-- **Adapted third-party** (committed, with attribution): `deep-recon` is adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon) (MIT) — voice-anchored to this wiki and re-routed to its entity folders. The upstream MIT notice is reproduced in `NOTICE`.
+- **Adapted third-party** (committed, with attribution): `deep-recon` is adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon) (MIT) — voice-anchored to this wiki and re-routed to its entity folders. `diagram-syntax` combines an owner-authored orchestration layer (SKILL.md, the verified ArchiMate/Hosiaisluoma reference, the render-verify loop) with reference files vendored from [`tractorjuice/arc-kit`](https://github.com/tractorjuice/arc-kit) (MIT; itself sourced from the mermaid.js.org docs via `WH-2099/mermaid-skill` and from `SpillwaveSolutions/plantuml`) — each vendored file records its own provenance and is refreshed from upstream, not hand-edited. Upstream MIT notices are reproduced in `NOTICE`.
 - **Installed, not committed** (the **⬇** rows below): the Obsidian-native skills from [`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills) (Steph Ango's official Agent Skills, MIT), installed by `setup.sh` / `setup.ps1` into `.claude/skills/` (gitignored). Install with the setup script or `/plugin marketplace add kepano/obsidian-skills`.
 
 | Skill | Trigger | Primary use here |
@@ -425,6 +437,7 @@ Three provenances, all committed-or-installed honestly (see [`NOTICE`](NOTICE)):
 | ⬇ `obsidian-cli` | "interact with my vault", live operations on the active Obsidian instance | **Conditional — see below.** Use only when Obsidian is running *and* the CLI is materially faster than `rg`/`fd`. |
 | ⬇ `json-canvas` | `.canvas` files; mind maps, flowcharts | Domain-coverage canvases, concept-cluster maps, case-study network diagrams. Niche but cheap. |
 | ⬇ `defuddle` | URLs to non-`.md` web pages | First-line tool for web-sourced `ingest`: cleans clutter before WebFetch. Requires `npm install -g defuddle`. |
+| `diagram-syntax` | `.mmd` / `.puml` paths; authoring or debugging a Mermaid, PlantUML, ArchiMate or C4 diagram | The syntax layer under the "Images and diagrams" policy above. That policy decides *which* track and *whether* a figure earns its place; the skill supplies the Mermaid per-type and PlantUML/ArchiMate macro reference, the C4 layout science, and the render-verify loop. |
 | `deep-recon` | `/deep-recon <topic>`, "brainstorm deeply", "stress-test this idea" | Multi-agent reconnaissance for `query` rumination and pre-essay scoping; voice-anchored to [[voice-guide]]. Only the final deliverable lands in the wiki, routed by type like any `query` output (essay → `analyses/`, update → in-place, half-formed → `inbox/`); intermediate agent files are scratch (see `SKILL.md`). |
 | `critical-reviewer` | "be critical", "stress-test this", "devil's advocate", "what am I missing", "no flattery" | Anti-sycophancy adversarial review. Invoked by the `pr-manager` agent before it reviews a PR, and on demand when you want work challenged rather than affirmed. |
 
@@ -460,7 +473,9 @@ The vault ships with the **Smart Connections** community plugin (`wiki/.obsidian
 
 ### Voice anchor
 
-All voiced outputs (analyses, recon documents, synthesis sections) read [[voice-guide]] before drafting. The deep-recon Synthesizer agent points at this file directly; other workflows should too when producing prose that lands in the wiki. The voice guide is built and refreshed by the `voice-interview` skill.
+**Every entity page is voiced prose, source pages included.** A `sources/` page is not a neutral transcript: it selects, compresses, and frames the raw artifact, so it is synthesis in the owner's voice, not quoting. The same holds for `concepts/`, `frameworks/`, `analyses/`, `cases/`, `questions/`, and the `artifacts/` pages. So read [[voice-guide]] before drafting **any** of them, not only analyses and recon documents. This holds whether the page is written directly or by a subagent — an ingest subagent reads the voice guide too. The deep-recon Synthesizer agent points at it directly; other workflows should too. The voice guide is built and refreshed by the `voice-interview` skill.
+
+**The only exclusions:** verbatim block quotes (kept exact, in quotation marks), the top-level infrastructure files (`index.md`, `log.md`, `glossary.md`, `overview.md`, coverage matrices — mechanical catalog/record prose), and purely mechanical edits (fix a cell, rename a heading, move a section verbatim, correct a link). Third-party *quoted* text stays in its own voice; third-party ideas *restated* in a page body are the owner's to voice.
 
 ---
 
