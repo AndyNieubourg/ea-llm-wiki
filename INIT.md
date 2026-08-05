@@ -61,7 +61,7 @@ Hand off to the `voice-interview` skill: run `/voice-interview` (full pass, sinc
 
 ### Step 4 — Verify and commit
 
-1. Grep the repo for any leftover `{{` placeholders and for the words "foundation"/"placeholder"/"template" — there should be none left in `CLAUDE.md`, `README.md`, `domains.md`, or `voice-guide.md` (scaffold scaffolding should not survive into a personalised wiki).
+1. Grep the repo for any leftover `{{` placeholders and for the words "foundation"/"placeholder"/"template" — there should be none left in `CLAUDE.md`, `README.md`, `domains.md`, `voice-guide.md`, or `.claude/hooks/guard-raw.sh` (scaffold scaffolding should not survive into a personalised wiki). An unfilled `{{MAIN_CHECKOUT_PATH}}` in the write guard fails silently — the guard still runs but loses its main-checkout protection — so check it explicitly, not just by grepping the docs.
 2. Show the owner a short diff-style summary of what changed.
 3. Commit (`init: personalise wiki for <owner>`), and optionally remove `INIT.md` and the `init-wiki` skill since setup is done.
 
@@ -69,7 +69,7 @@ Hand off to the `voice-interview` skill: run `/voice-interview` (full pass, sinc
 
 ## Self-check (the agent runs this before declaring done)
 
-- [ ] No `{{PLACEHOLDER}}` tokens remain in `CLAUDE.md` or `voice-guide.md`.
+- [ ] No `{{PLACEHOLDER}}` tokens remain in `CLAUDE.md`, `voice-guide.md`, or `.claude/hooks/guard-raw.sh`.
 - [ ] The foundation banner and "personalise with /init-wiki" notes are gone from `CLAUDE.md`.
 - [ ] The `#domain:` set is identical across `domains.md`, `coverage.base`, `coverage.md`, and `CLAUDE.md`.
 - [ ] `README.md` describes *this owner's* wiki, not the generic scaffold.
