@@ -81,9 +81,10 @@ IS_MAC=0; [[ "$(uname -s)" == "Darwin" ]] && IS_MAC=1
 # ===========================================================================
 if [[ "$CHECK" -eq 1 ]]; then
   info "Status check (no changes will be made)"
-  for t in brew git gh java dot node mmdc; do
+  for t in brew git gh java dot node mmdc jq; do
     if have "$t"; then ok "$t"; else miss "$t not on PATH"; fi
   done
+  have rsvg-convert && ok "rsvg-convert" || miss "rsvg-convert not on PATH (designed-SVG render check)"
   [[ -f "$JAR" ]] && ok "PlantUML JAR present ($(du -h "$JAR" | cut -f1))" || miss "PlantUML JAR missing ($JAR)"
   for id in obsidian-plantuml smart-connections; do
     if [[ -f "$PLUGINS_DIR/$id/main.js" && -f "$PLUGINS_DIR/$id/manifest.json" ]]; then
@@ -114,7 +115,7 @@ elif ! have brew; then
 else
   info "Homebrew packages"
   # CLI formulae
-  for pkg in git gh openjdk graphviz node; do
+  for pkg in git gh openjdk graphviz node jq librsvg; do
     if brew list --formula "$pkg" >/dev/null 2>&1; then ok "$pkg"; else info "installing $pkg"; brew install "$pkg"; fi
   done
   # Obsidian (cask) — best effort
@@ -202,8 +203,9 @@ fi
 
 # ===========================================================================
 # 6. Obsidian Agent Skills (kepano/obsidian-skills, MIT) — NOT redistributed
-#    here; cloned into .claude/skills/ (gitignored). The wiki's own skills
-#    (init-wiki, voice-interview, deep-recon) are committed and left untouched.
+#    here; cloned into .claude/skills/ (gitignored). The committed skills
+#    (init-wiki, voice-interview, deep-recon, critical-reviewer,
+#    diagram-syntax, pyramid-structure) are left untouched.
 # ===========================================================================
 if [[ "$SKIP_SKILLS" -eq 1 ]]; then
   info "Obsidian skills — skipped (--skip-skills)"
@@ -237,8 +239,9 @@ fi
 # ===========================================================================
 info "Verification"
 rc=0
-for t in java dot; do have "$t" && ok "$t" || { miss "$t missing"; rc=1; }; done
+for t in java dot jq; do have "$t" && ok "$t" || { miss "$t missing"; rc=1; }; done
 have mmdc && ok "mmdc" || skip "mmdc (optional)"
+have rsvg-convert && ok "rsvg-convert" || skip "rsvg-convert (optional — designed-SVG render check)"
 [[ -f "$JAR" ]] && ok "PlantUML JAR" || { miss "PlantUML JAR"; rc=1; }
 for id in obsidian-plantuml smart-connections; do
   [[ -f "$PLUGINS_DIR/$id/main.js" ]] && ok "plugin $id" || { miss "plugin $id"; rc=1; }

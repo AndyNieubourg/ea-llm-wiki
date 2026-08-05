@@ -218,8 +218,13 @@ if ($SkipPlugins) {
 
 # ===========================================================================
 # 6. Obsidian Agent Skills (kepano/obsidian-skills, MIT) - NOT redistributed
-#    here; cloned into .claude\skills\ (gitignored). The wiki's own skills
-#    (init-wiki, voice-interview, deep-recon) are committed and left untouched.
+#    here; cloned into .claude\skills\ (gitignored). The committed skills
+#    (init-wiki, voice-interview, deep-recon, critical-reviewer,
+#    diagram-syntax, pyramid-structure) are left untouched.
+#    NOTE: the committed Claude Code hooks (.claude\hooks\) are POSIX shell +
+#    jq; on Windows they only run under a POSIX layer (Git Bash / WSL). Without
+#    one, Claude Code reports a hook error and the raw/ write guard does NOT
+#    protect the repo - the CLAUDE.md rules still apply, unenforced.
 # ===========================================================================
 if ($SkipSkills) {
   Info 'Obsidian skills - skipped (--skip-skills)'

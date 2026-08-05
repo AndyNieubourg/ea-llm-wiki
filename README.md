@@ -29,13 +29,14 @@ The wiki is driven by Claude Code against [`CLAUDE.md`](CLAUDE.md), the canonica
 raw/                    # source documents, read-only (gitignored)
 wiki/
   index.md              # catalog of pages
-  log.md                # append-only activity log
+  log.md                # append-only activity log (current month)
+  log/                  # archived months (YYYY-MM.md), rolled during lint
   overview.md           # cross-wiki synthesis (rewritten during lint)
   glossary.md           # living terminology + alias bridge
   domains.md            # EA-discipline domain taxonomy
   coverage.md           # materialised domain-coverage matrix (rewritten during lint)
   coverage.base         # live Bases dashboard companion to coverage.md
-  _resources/           # infrastructure (voice-guide.md)
+  _resources/           # infrastructure (voice-guide.md, ingest-coverage tool)
   inbox/                # quick-capture notes pending triage
   sources/              # one page per raw document
   concepts/             # atomic notes, one idea per page
@@ -161,9 +162,16 @@ Then in Obsidian: **Settings → Community plugins → Browse**, and install **P
 ```bash
 java -version
 dot -V
+jq --version
 ```
 
-Both should print version lines. Then in Obsidian, open any page with a PlantUML ArchiMate block — it should render as a diagram with no perceptible network spinner. If you see raw `@startuml` source instead, fully quit and reopen Obsidian so the plugin re-reads its `data.json`, and confirm `java -version` / `dot -V` work in your terminal.
+All three should print version lines. Then in Obsidian, open any page with a PlantUML ArchiMate block — it should render as a diagram with no perceptible network spinner. If you see raw `@startuml` source instead, fully quit and reopen Obsidian so the plugin re-reads its `data.json`, and confirm `java -version` / `dot -V` work in your terminal.
+
+The committed Claude Code write guard has its own test suite; a passing run confirms the hook works on this machine:
+
+```bash
+sh .claude/hooks/guard-raw.test.sh
+```
 
 ## Lineage
 
