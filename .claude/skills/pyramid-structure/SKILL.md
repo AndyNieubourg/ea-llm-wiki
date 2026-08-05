@@ -202,5 +202,6 @@ This is a soft, vault-local enrichment. The skill must not hard-depend on any of
 | The problem itself isn't solved yet — no hypothesis, no discriminating facts, not just unstructured | Do the analysis first (Minto's problem-definition + logic-tree structuring, or hypothesis-driven problem solving); this skill structures an existing answer, it doesn't find one |
 | Structure is settled, now write the prose | Draft against the wiki's voice anchor (`wiki/_resources/voice-guide.md`), then the owner's editing pass |
 | Deliverable is a thesis, paper, or exam essay | The owner's academic-register workflow, if one is installed; the governing thought becomes the thesis claim |
+| Deliverable ships to Confluence | The owner's Confluence-publishing skill, if installed (see the "Publishing to Confluence" note in `CLAUDE.md`), after drafting |
 | Need the full genre catalogue or story-shape detail beyond what's condensed here | The owner's ingested design/structuring pages, if any (see *Wiki cross-references* above) |
 | The structure is sound but needs to land emotionally, not just logically | See *Boundary: structure vs. landing* above — a separate concern, not this skill's job |
