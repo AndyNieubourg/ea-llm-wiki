@@ -76,12 +76,13 @@ Clone, install a small set of prerequisites plus two Obsidian community plugins,
 
 ```bash
 brew install --cask obsidian
-brew install git gh openjdk graphviz jq
+brew install git gh openjdk graphviz jq librsvg
 ```
 
 - **Obsidian** — the vault browser (the repo is an Obsidian vault under `wiki/`).
 - **git / gh** — version control and PR lifecycle (the `pr-manager` agent uses `gh`).
 - **jq** — required by the committed Claude Code hooks (`.claude/hooks/`); the write guard fails closed (denies all writes) without it.
+- **librsvg** — provides `rsvg-convert`, the render check for designed-SVG figures (diagram track 3 in `CLAUDE.md`).
 - **OpenJDK** — runs the PlantUML JAR for ArchiMate / C4 diagrams (you download the JAR once in step 6).
 - **GraphViz** — required for ArchiMate / class / ER / activity diagrams (sequence diagrams skip it).
 
