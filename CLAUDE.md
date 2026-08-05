@@ -35,7 +35,7 @@ You own everything in `wiki/`. `raw/` is mostly hands-off, with two exceptions:
 1. **Reorganisation with explicit permission.** If I ask you to restructure `raw/` (rename, move, regroup files into subfolders), you can — but only after I've said so for this specific action. Don't reorganise pre-emptively or as a side effect of another workflow.
 2. **Filing attached files for ingestion.** When I attach a file in chat and ask you to ingest it, you may place it under `raw/` in the appropriate subfolder before running `ingest`. Pick the folder by analogy with what's already there; ask if no obvious home exists. Never modify files already in `raw/` as part of this — only add new ones.
 
-Outside these two cases, treat `raw/` as immutable.
+Outside these two cases, treat `raw/` as immutable. This rule is also **enforced**, not just stated: the committed PreToolUse hook `.claude/hooks/guard-raw.sh` (wired in `.claude/settings.json`) denies edits of existing raw files and overwrites of them, allows new-file adds, and additionally blocks credential-shaped content anywhere in the repo. It needs `jq` and fails closed without it.
 
 ---
 
