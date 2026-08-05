@@ -1,9 +1,12 @@
 .DS_Store
 
-# Claude Code per-project state — ignored, except for shareable skills and agents
+# Claude Code per-project state — ignored, except for shareable skills, agents,
+# hooks, and the project settings that wire the hooks up
 .claude/*
 !.claude/skills/
 !.claude/agents/
+!.claude/hooks/
+!.claude/settings.json
 
 # Third-party skills are NOT redistributed — installed by setup.sh / setup.ps1
 # from kepano/obsidian-skills (MIT). Re-ignored so a local install can't be

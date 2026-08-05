@@ -44,7 +44,7 @@ Use `AskUserQuestion` where the choice is bounded; ask in prose where it's open.
 2. **Purpose / jobs.** The primary job is always the knowledge base. Ask what *secondary* jobs, if any, this wiki should serve — portfolio/evidence (for a cert, degree, or promotion), team/practice enablement, consulting reference, course study, or none. For each chosen job, get one line on what counts as a contributing page (this seeds `#job:<name>` tagging). → fills `{{SECONDARY_JOBS}}`. If "none", say so explicitly and drop the `#job:` tag from the tagging section.
 3. **Domain taxonomy.** Show the twelve default EA-discipline domains from `wiki/domains.md`. Ask the owner to confirm, prune the ones outside their practice, rename to their vocabulary, or add any missing area. Keep it coarse — one tag per genuinely distinct area of *their* work. → rewrites `wiki/domains.md`, the `#domain:` list in `CLAUDE.md`, and the domain set + per-domain views in `wiki/coverage.base` and `wiki/coverage.md`. (When you change the domain set, update **all four** so the lint scan, the matrix, and the `.base` stay in lock-step.)
 4. **Locale.** Units, currency, regulatory framing defaults (e.g. metric / EUR / EU AI Act + GDPR; or imperial / USD / US framing). → fills `{{LOCALE_DEFAULTS}}`, `{{NUMBER FORMAT}}`.
-5. **`raw/` location.** The absolute path to the main-checkout `raw/` folder on the owner's machine (the source documents live there and are gitignored, so worktrees can't see them). If they don't know yet, leave a clear "set this later" note rather than a fake path. → fills `{{RAW_MAIN_PATH}}`.
+5. **`raw/` location.** The absolute path to the main-checkout `raw/` folder on the owner's machine (the source documents live there and are gitignored, so worktrees can't see them). If they don't know yet, leave a clear "set this later" note rather than a fake path. → fills `{{RAW_MAIN_PATH}}`, and its parent directory (the main checkout itself) fills `{{MAIN_CHECKOUT_PATH}}` in `.claude/hooks/guard-raw.sh` — the write guard uses it to keep the main checkout's `raw/` protected from worktree sessions.
 6. **Confidentiality posture.** Is the repo private or shared/public? Are there NDA/PII constraints on what can be committed (especially attachments)? → fills `{{CONFIDENTIALITY_NOTE}}`.
 7. **Shipping autonomy.** Should the `pr-manager` agent open → review → merge fully autonomously, or open + review and **stop before merge** for a manual confirm? → fills `{{SHIPPING_AUTONOMY}}`, and aligns the wording in the `CLAUDE.md` git-workflow section.
 
@@ -61,7 +61,7 @@ Hand off to the `voice-interview` skill: run `/voice-interview` (full pass, sinc
 
 ### Step 4 — Verify and commit
 
-1. Grep the repo for any leftover `{{` placeholders and for the words "foundation"/"placeholder"/"template" — there should be none left in `CLAUDE.md`, `README.md`, `domains.md`, or `voice-guide.md` (scaffold scaffolding should not survive into a personalised wiki).
+1. Grep the repo for any leftover `{{` placeholders and for the words "foundation"/"placeholder"/"template" — there should be none left in `CLAUDE.md`, `README.md`, `domains.md`, `voice-guide.md`, or `.claude/hooks/guard-raw.sh` (scaffold scaffolding should not survive into a personalised wiki). An unfilled `{{MAIN_CHECKOUT_PATH}}` in the write guard fails silently — the guard still runs but loses its main-checkout protection — so check it explicitly, not just by grepping the docs.
 2. Show the owner a short diff-style summary of what changed.
 3. Commit (`init: personalise wiki for <owner>`), and optionally remove `INIT.md` and the `init-wiki` skill since setup is done.
 
@@ -69,7 +69,7 @@ Hand off to the `voice-interview` skill: run `/voice-interview` (full pass, sinc
 
 ## Self-check (the agent runs this before declaring done)
 
-- [ ] No `{{PLACEHOLDER}}` tokens remain in `CLAUDE.md` or `voice-guide.md`.
+- [ ] No `{{PLACEHOLDER}}` tokens remain in `CLAUDE.md`, `voice-guide.md`, or `.claude/hooks/guard-raw.sh`.
 - [ ] The foundation banner and "personalise with /init-wiki" notes are gone from `CLAUDE.md`.
 - [ ] The `#domain:` set is identical across `domains.md`, `coverage.base`, `coverage.md`, and `CLAUDE.md`.
 - [ ] `README.md` describes *this owner's* wiki, not the generic scaffold.

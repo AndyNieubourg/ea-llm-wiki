@@ -10,7 +10,7 @@ description: >-
   Use after a workflow unit (ingest / capture / query / lint / case write-up)
   is committed on a claude/* branch and ready to ship. The review can and must
   BLOCK the merge if it finds real problems.
-tools: Bash, Read, Edit, Write, Grep, Glob, Skill
+tools: Bash, Read, Edit, Write, Grep, Glob, Skill, ToolSearch, mcp__github__create_pull_request, mcp__github__merge_pull_request, mcp__github__list_pull_requests, mcp__github__search_pull_requests, mcp__github__pull_request_read, mcp__github__add_issue_comment, mcp__github__update_pull_request_branch, mcp__github__get_me
 model: inherit
 ---
 
@@ -30,10 +30,46 @@ wiki conventions, link integrity, and frontmatter correctness — not unit tests
 or compilers. Read `CLAUDE.md` at the repo root; it is the authoritative spec
 and overrides anything here if they ever conflict.
 
+## GitHub access: `gh` CLI or GitHub MCP (detect first, never assume)
+
+PR open/merge/comment can run through **either** the `gh` CLI **or** the GitHub
+MCP tools, and which one exists depends on where the session runs. Local /
+worktree sessions usually have `gh`; the remote (cloud / web) execution
+environment usually has **no `gh`** and exposes the GitHub MCP tools instead. A
+missing `gh` is NOT a blocker and is NEVER a reason to stop short of merging —
+it just means use the other path. Detect once at the start and reuse the result:
+
+```bash
+command -v gh >/dev/null 2>&1 && echo "gh available" || echo "no gh — use GitHub MCP"
+```
+
+- **`gh` available** → use the `gh pr …` commands in the procedure below.
+- **no `gh`** → use the GitHub MCP equivalents (granted in this agent's `tools`).
+  If an `mcp__github__*` tool is listed but its schema is not yet loaded, run
+  `ToolSearch("select:mcp__github__create_pull_request,mcp__github__merge_pull_request,...")`
+  to load it, then call it. Resolve `owner`/`repo` from the `origin` remote
+  (`git remote get-url origin`).
+
+| Step | `gh` CLI | GitHub MCP tool |
+|---|---|---|
+| Open PR | `gh pr create --base main --head <branch> --title … --body …` | `mcp__github__create_pull_request` (owner, repo, head, base, title, body) |
+| Find / inspect PR | `gh pr view <num> --json …` | `mcp__github__pull_request_read` · `mcp__github__list_pull_requests` |
+| Post review comment | `gh pr comment <num> --body …` | `mcp__github__add_issue_comment` (pass PR number as `issue_number`) |
+| Sync branch w/ main | `git merge origin/main` locally | `mcp__github__update_pull_request_branch` (or resolve locally + push) |
+| Merge PR | `gh pr merge <num> --merge --delete-branch` | `mcp__github__merge_pull_request` (merge_method `merge`) |
+
+The MCP `merge_pull_request` has no delete-branch option. After an MCP merge,
+delete the remote branch with `git push origin --delete <branch>` (a "remote
+hung up" / unsupported error there is harmless — the merge is what counts; just
+note it). The conflict-resolution rules and the review gate are identical on
+both paths; only the open/merge/comment transport changes.
+
 ## Operating rules (hard constraints)
 
-1. Never push directly to `main`. All integration goes through a PR and
-   `gh pr merge`. The only branch you `git push` is the current `claude/*` branch.
+1. Never push directly to `main`. All integration goes through a PR and a merge
+   via the chosen GitHub path (`gh pr merge` or `mcp__github__merge_pull_request`,
+   see "GitHub access" above). The only branch you `git push` is the current
+   `claude/*` branch.
 2. Never use `--no-verify`, never force-push except `--force-with-lease` when you
    own the rebase, never skip hooks.
 3. Never touch `raw/`. It is immutable source material (CLAUDE.md rule).
@@ -60,11 +96,14 @@ and overrides anything here if they ever conflict.
 
 ### 2. Open the PR
 - Build the title (<70 chars) and a body summarising every commit on the branch
-  (not just the latest). Match the repo's style — check
-  `gh pr list --state merged --limit 5`.
-- `gh pr create --base main --head <branch> --title "..." --body "..."` (pass the
-  body via a heredoc for correct formatting).
-- Capture the PR number/URL.
+  (not just the latest). Match the repo's style — check recent merged PRs
+  (`gh pr list --state merged --limit 5`, or `mcp__github__list_pull_requests`
+  with `state: closed`).
+- Open it via the chosen path: `gh pr create --base main --head <branch>
+  --title "..." --body "..."` (heredoc body for formatting), or
+  `mcp__github__create_pull_request` (owner, repo, head=<branch>, base=main,
+  title, body).
+- Capture the PR number/URL from the result.
 
 ### 3. Choose the review gate (content-type-aware)
 Look at what the diff actually touches and pick the strongest gate that fits —
@@ -80,10 +119,9 @@ do not run a code gate on prose or vice versa:
 - **Large or high-stakes changes** (a new `analyses/` essay, a multi-page
   restructure, a `CLAUDE.md` rewrite, or roughly >10 changed files) → run the
   fitting gate above, AND in your final report recommend that the owner run a
-  deeper manual review pass (e.g. `/ultrareview` if available). NEVER attempt that
-  yourself — it is user-triggered and billed and cannot run unattended. Do not
-  block solely because you'd like a deeper review; block only on concrete
-  findings.
+  deeper manual review pass. NEVER attempt such a pass yourself on the owner's
+  behalf — it is the owner's call and cannot run unattended. Do not block solely
+  because you'd like a deeper review; block only on concrete findings.
 
 ### 3b. Adversarial review (the part that matters)
 Before reviewing, invoke `Skill(critical-reviewer)` and conduct
@@ -96,11 +134,12 @@ manufacture a flaw if none exists (its rule 8), and tag each finding
 **load-bearing** (would change the merge/block decision) vs. **performative**
 (defensible but wouldn't). Block only on load-bearing findings.
 
-Review the full diff (`gh pr diff <num>` or `git diff main...HEAD`) against the
-rubric below (plus any `code-review` findings from step 3). For each finding,
-decide: auto-fix (safe, mechanical, obvious) or block (judgement call,
-ambiguous, or destructive). Post findings as a PR comment so the review is
-auditable.
+Review the full diff (`gh pr diff <num>`, or `git diff main...HEAD` which needs
+no GitHub access) against the rubric below (plus any `code-review` findings from
+step 3). For each finding, decide: auto-fix (safe, mechanical, obvious) or block
+(judgement call, ambiguous, or destructive). Post findings as a PR comment
+(`gh pr comment` or `mcp__github__add_issue_comment` with the PR number as
+`issue_number`) so the review is auditable.
 
 Wiki-convention rubric:
 - Frontmatter: every new/edited entity page has valid YAML — `title`, `type`
@@ -117,8 +156,8 @@ Wiki-convention rubric:
   check). `glossary.md` / `overview.md` updated if a major entity landed.
 - Bookkeeping: `index.md` updated for new pages; `log.md` has the workflow
   entry; coverage matrices touched if `#domain:` tags changed.
-- Tags: reserved-prefix tags (`#thesis: #domain: #course: #kb:`) are
-  well-formed; `#domain:` values are among the 13 canonical domains.
+- Tags: reserved-prefix tags (`#domain: #kb: #job:`) are well-formed;
+  `#domain:` values are among the domains declared in `wiki/domains.md`.
 - Attachments: embedded `![[...]]` images exist on disk; no orphan attachment
   folders; images reasonably compressed (CLAUDE.md image rules).
 - Voice & scope: prose-heavy outputs read like the voice-guide; no tool scratch,
@@ -137,8 +176,9 @@ wrong, state what you checked and why each check passed.
 
 ### 5. Resolve conflicts with main
 - `git fetch origin main`.
-- Check `gh pr view <num> --json mergeable` or try
-  `git merge --no-commit --no-ff origin/main`. If conflicts:
+- Check mergeability (`gh pr view <num> --json mergeable`,
+  `mcp__github__pull_request_read`, or simply try
+  `git merge --no-commit --no-ff origin/main` locally). If conflicts:
   - Resolve each per rule 5 above (append-only → union in chrono order;
     index → union; entity pages → understand both edits and combine).
   - `git add` resolved files, commit the merge, `git push`.
@@ -146,9 +186,13 @@ wrong, state what you checked and why each check passed.
 
 ### 6. Merge
 - Confirm mergeable and review passed.
-- `gh pr merge <num> --merge --delete-branch` (the repo uses merge commits — see
-  recent history). If the merge command fails, report the exact error; do not
-  retry blindly or fall back to a direct push.
+- The repo uses **merge commits** (see recent history), so merge with that
+  method: `gh pr merge <num> --merge --delete-branch`, or
+  `mcp__github__merge_pull_request` with `merge_method: "merge"` followed by
+  `git push origin --delete <branch>` for cleanup (MCP has no delete-branch
+  option; a failed delete is harmless, just note it).
+- If the merge call fails, report the exact error; do not retry blindly and
+  never fall back to a direct push to `main`.
 
 ### 7. Report
 Return a concise report: PR URL, what shipped, review findings (fixed vs.
