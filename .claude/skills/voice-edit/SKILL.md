@@ -1,6 +1,6 @@
 ---
 name: voice-edit
-description: Edit prose toward the wiki's voice anchor in altitude-ordered passes, until the voice-guide self-check runs clean. Use when asked to "edit", "revise", "tighten", "polish", "clean up", "proofread" or "improve" prose that ships under the owner's name, AND as the finishing loop after drafting an analyses/ essay, an artifacts/ deliverable, or a deep-recon output. Do NOT use on inbox/ notes or atomic concepts/ pages (cheap to write by design), on the top-level infrastructure files, on code, or on text meant to sound like someone else.
+description: Edit prose toward the wiki's voice anchor in altitude-ordered passes, until the voice-guide self-check runs clean. Use when asked to "edit", "revise", "tighten", "polish", "clean up", "proofread" or "improve" prose that ships under the owner's name, AND as the mandatory finishing loop after voice-draft on an analyses/ essay, an artifacts/ deliverable, or a deep-recon output. Do NOT use on inbox/ notes or atomic concepts/ pages (cheap to write by design), on the top-level infrastructure files, on code, or on text meant to sound like someone else.
 allowed-tools: Read, Edit, Write, Grep, Glob, AskUserQuestion
 user-invocable: true
 ---
@@ -15,7 +15,7 @@ Edit a draft toward [[voice-guide]] in altitude-ordered passes, and stop when th
 
 Two entry points:
 
-1. **As a finishing loop.** Right after drafting voiced prose, run the passes to converge the draft on the standard before it ships.
+1. **As the finishing loop after `voice-draft`.** The sequence is `pyramid-structure` → `voice-draft` → `voice-edit`, and the draft is labelled "pre-edit draft" until these passes have run on it. Converge it on the standard before it ships.
 2. **On its own, on prose that already exists.** The owner hands you text and asks to edit, tighten, or clean it up. Same passes, same convergence test.
 
 ---
@@ -52,11 +52,14 @@ Three passes, each reading the whole piece at one altitude. This mirrors the rec
 
 ### Pass 1 — Content and structure (the widest lens)
 
-Read for meaning, stance, and spine. The guide's *Structure* and *Take intellectual risk in the ideas* sections are the checklist.
+Read for meaning, stance, and structure. The guide's *Structure* and *Take intellectual risk in the ideas* sections are the voice-side checklist; **`pyramid-structure` owns the argument side, and this pass leans on it rather than re-deriving a spine.**
 
 - **Is the stance non-obvious?** If a sharp peer would say "well, yes, obviously", push to the reading that makes them sit up. Take a stance, defend it through the trade-off.
-- **Is the spine present?** Scope early; the question, then the scenarios; exclusions with reasons; the recommendation stated directly with its motivation; open points explained in prose, not left as a vague inline tag.
-- **Does load-bearing content sit in the body, not an annex?** Move the spine in; reference annexes by number.
+- **Does the structure hold?** Two routes, depending on whether the argument was structured deliberately.
+  - **An outline exists** (`pyramid-structure` ran, leaving `<slug>-pyramid-outline.md`): read it, and check **conformance**. Does the first screen carry the governing thought as an answer, not a topic? Does each section land the key line the outline assigned it? Where the prose drifted from the tree, is the drift deliberate or accidental? Either way it is a finding: an argument silently rewritten during drafting is exactly what the outline exists to catch.
+  - **No outline exists:** apply the pyramid tests rather than inventing a checklist. One governing thought, stated as an answer. Groupings MECE, with no overlap and no gap a sharp reader would flag. Every point passing "so what" going up and "why so" going down. Summary headings stating the insight, never a blank label like "Findings". A deliberate, consistent order inside each grouping. `pyramid-structure`'s *Self-check before handing off* is the full list; do not restate it here.
+  - **Escalate rather than rebuild.** This pass moves a misordered section and cuts a paragraph carrying no load. It does **not** rebuild a pyramid inside an editing loop. Where the piece fails at the governing-thought level — no single answer, groupings that overlap, an executive summary mirroring the whole tree — stop and hand back to `pyramid-structure`. Editing prose whose argument is unsound is polishing the wrong artefact.
+- **Does load-bearing content sit in the body, not an annex?** Move the spine in; reference annexes by number. Open points belong in prose, not in a vague inline tag.
 - **Does every claim carry a number, a name, or an open point named in prose?** Adjectives without numbers are the guide's own red line. Quantify or cut.
 - **Do the receipts hold?** Surface test first: does a receipt *appear* for each load-bearing claim. When the prose is grounded in a corpus (`raw/` sources plus the KB), go one level deeper: check the page's `sources:` frontmatter resolves to real files, and spot-check the load-bearing claims against those pages using the `query` search discipline — canonical term plus synonyms, glossary aliases, shared-source and shared-tag expansion. Absence is a claim: report the terms you searched, never a flat "not in the sources".
 - **Kill darlings.** Section by section, paragraph by paragraph: if you cut it, would anything change? If not, cut it. A clever line carrying no load is a darling.
@@ -158,5 +161,6 @@ Run the loop proportionate to the document. Optimising a one-paragraph email is 
 ## Related
 
 - [[voice-guide]] — the standard this skill edits toward, built and refreshed by `voice-interview`.
-- `pyramid-structure` — runs upstream: it settles the governing thought and the decomposition before a word is drafted. This skill assumes that decision is already made.
+- `pyramid-structure` — runs upstream: it settles the governing thought and the decomposition before a word is drafted, and pass 1 checks the prose against its outline instead of re-deriving a spine. Where the argument itself is unsound, this skill hands back rather than rebuilding.
+- `voice-draft` — runs immediately upstream: it drafts against [[voice-guide]] and the pyramid outline, then hands here for the finishing loop.
 - `critical-reviewer` — runs downstream on anything carrying an argument or a recommendation: an adversarial pass on the substance, after the prose meets the standard.
