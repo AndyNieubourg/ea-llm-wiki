@@ -1,7 +1,7 @@
 ---
 name: voice-edit
 description: Edit prose toward the wiki's voice anchor in altitude-ordered passes, until the voice-guide self-check runs clean. Use when asked to "edit", "revise", "tighten", "polish", "clean up", "proofread" or "improve" prose that ships under the owner's name, AND as the mandatory finishing loop after voice-draft on an analyses/ essay, an artifacts/ deliverable, or a deep-recon output. Do NOT use on inbox/ notes or atomic concepts/ pages (cheap to write by design), on the top-level infrastructure files, on code, or on text meant to sound like someone else.
-allowed-tools: Read, Edit, Write, Grep, Glob, AskUserQuestion
+allowed-tools: Read, Edit, Write, Grep, Glob, Task, AskUserQuestion
 user-invocable: true
 ---
 
