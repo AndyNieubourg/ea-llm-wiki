@@ -10,9 +10,10 @@ user-invocable: true
 Draft prose against [[voice-guide]]. The guide is the **standard**; this skill is the **drafting process** that applies it, and it is the middle step of the shipping sequence.
 
 ```
-pyramid-structure  →  voice-draft  →  voice-edit  →  traceability-ledger  →  critical-reviewer
-  what the             the prose       converge on     (only with a          (only when it
-  argument is                          the standard     grounding corpus)     carries an argument)
+pyramid-structure  →  voice-draft  →  voice-edit  →  critical-reviewer
+  what the             the prose       converge on     (only when it carries
+  argument is                          the standard     an argument or a
+                                                        recommendation)
 ```
 
 **Dependencies:** hard dependency on `wiki/_resources/voice-guide.md`. Read it at the start of every draft, never from memory: it is the only source of the voice, and this file deliberately does not restate its rules. **Soft** input from `pyramid-structure` (its outline is what you draft against) and from `deep-recon` (its Synthesizer output as raw material).
