@@ -1,6 +1,6 @@
 ---
 name: pyramid-structure
-description: Structure a deliverable (document or presentation) before drafting a word of it, using Minto's Pyramid Principle and the "so what" test. Use when the owner has a subject, problem, or pile of raw material and needs to decide the governing thought and how to decompose it into a defensible, ordered argument, before writing prose or building slides. Triggers include "help me structure this", "what's the storyline here", "build an outline", "what's my so what", "is this MECE", "how should I break this down", "help me structure this deck/report/proposal", "what's the pyramid here". Runs upstream of drafting and polish — this is the general-purpose structuring step; the prose itself is then drafted against the wiki's voice anchor (voice-guide). Do NOT use for line-level editing, voice/tone, or open-ended brainstorming with no deliverable yet (deep-recon) — those are separate concerns this one feeds into.
+description: Structure a deliverable (document or presentation) before drafting a word of it, using Minto's Pyramid Principle and the "so what" test. Use when the owner has a subject, problem, or pile of raw material and needs to decide the governing thought and how to decompose it into a defensible, ordered argument, before writing prose or building slides. Triggers include "help me structure this", "what's the storyline here", "build an outline", "what's my so what", "is this MECE", "how should I break this down", "help me structure this deck/report/proposal", "what's the pyramid here". Runs upstream of drafting and polish — this is the general-purpose structuring step; the prose itself is then drafted by voice-draft against the wiki's voice anchor (voice-guide) and finished by voice-edit. Do NOT use for line-level editing, voice/tone, or open-ended brainstorming with no deliverable yet (deep-recon) — those are separate concerns this one feeds into.
 allowed-tools: Read, Grep, Glob, Write, Edit, AskUserQuestion
 user-invocable: true
 ---
@@ -9,7 +9,7 @@ user-invocable: true
 
 This skill is the **structuring step**, not a voice or editing skill. It answers one question: *given a subject and a pile of raw material, what is the one thing I want the reader to take away, and how do the supporting points prove it?* It runs before a word of prose or a single slide gets built, and its output is an outline, not a draft.
 
-**Dependencies:** none required. **Soft** input from `deep-recon` (its Synthesizer output is excellent bottom-up raw material when the topic hasn't been explored yet). **Hands off** to drafting against the wiki's voice anchor (`wiki/_resources/voice-guide.md`), and to whatever editing or grounding workflow the owner uses on top of it. This skill does not draft prose, does not check tone, and does not verify grounding. Where the wiki's own material on structuring exists (pyramid principle, SCQA, MECE pages in `concepts/` or `analyses/`), read it rather than re-deriving the method from memory (see *Wiki cross-references* below).
+**Dependencies:** none required. **Soft** input from `deep-recon` (its Synthesizer output is excellent bottom-up raw material when the topic hasn't been explored yet). **Hands off** to `voice-draft`, which drafts against the wiki's voice anchor (`wiki/_resources/voice-guide.md`) using this skill's outline, and then to `voice-edit`, whose first pass checks the prose back against that outline. This skill does not draft prose, does not check tone, and does not verify grounding. Where the wiki's own material on structuring exists (pyramid principle, SCQA, MECE pages in `concepts/` or `analyses/`), read it rather than re-deriving the method from memory (see *Wiki cross-references* below).
 
 ---
 
@@ -200,7 +200,7 @@ This is a soft, vault-local enrichment. The skill must not hard-depend on any of
 |---|---|
 | Topic hasn't been explored yet — no raw material to structure | `deep-recon` first; bring its Synthesizer output back here as bottom-up material |
 | The problem itself isn't solved yet — no hypothesis, no discriminating facts, not just unstructured | Do the analysis first (Minto's problem-definition + logic-tree structuring, or hypothesis-driven problem solving); this skill structures an existing answer, it doesn't find one |
-| Structure is settled, now write the prose | Draft against the wiki's voice anchor (`wiki/_resources/voice-guide.md`), then the owner's editing pass |
+| Structure is settled, now write the prose | `voice-draft` (drafts against `wiki/_resources/voice-guide.md` and this outline), then `voice-edit` (the finishing loop, whose pass 1 checks conformance back against this outline) |
 | Deliverable is a thesis, paper, or exam essay | The owner's academic-register workflow, if one is installed; the governing thought becomes the thesis claim |
 | Deliverable ships to Confluence | The owner's Confluence-publishing skill, if installed (see the "Publishing to Confluence" note in `CLAUDE.md`), after drafting |
 | Need the full genre catalogue or story-shape detail beyond what's condensed here | The owner's ingested design/structuring pages, if any (see *Wiki cross-references* above) |
