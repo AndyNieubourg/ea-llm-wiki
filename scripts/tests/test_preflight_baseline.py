@@ -270,6 +270,23 @@ class Hardening(unittest.TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn("frontmatter block is not closed", out)
 
+    def test_a_one_line_triple_backtick_span_does_not_open_a_fence(self):
+        self.v.write("concepts/gamma.md", page("gamma", "```code``` is inline.\n\nSee [[phantom]]."))
+        self.v.commit()
+        code, out = self.v.run()
+        self.assertEqual(code, 1, out)
+        self.assertIn("[[phantom]]", out)
+
+    def test_a_rewritten_committer_date_does_not_age_the_edit(self):
+        self.v.write("concepts/gamma.md", dated_page("gamma", "Text.", DAYS_AGO))
+        self.v.git("add", "-A")
+        env = dict(os.environ, GIT_AUTHOR_DATE=f"{DAYS_AGO}T12:00:00",
+                   GIT_COMMITTER_DATE=f"{TODAY}T12:00:00")
+        subprocess.run(["git", "commit", "-q", "-m", "rebased"], cwd=self.v.dir,
+                       check=True, capture_output=True, env=env)
+        code, out = self.v.run()
+        self.assertEqual(code, 0, out)
+
     def test_a_dotted_page_name_resolves(self):
         self.v.write("concepts/v1.2-notes.md", page("v1.2-notes", "Text."))
         self.v.write("concepts/gamma.md", page("gamma", "See [[v1.2-notes]] and [[alpha.md]]."))

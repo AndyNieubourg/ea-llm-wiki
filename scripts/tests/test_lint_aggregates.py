@@ -60,6 +60,13 @@ class Aggregates(unittest.TestCase):
         self.assertIn("(frontmatter `status:` changed): 1", out)
         self.assertNotIn("notes/questions", out)
 
+    def test_a_question_moved_out_of_questions_is_still_reported(self):
+        subprocess.run(["git", "mv", "wiki/questions/q1.md", "wiki/analyses-q1.md"],
+                       cwd=self.dir, check=True, capture_output=True)
+        self.write("wiki/analyses-q1.md", question("answered", "2026-01-01"))
+        out = self.run_script()
+        self.assertIn("open → answered", out)
+
     def test_a_pyramid_sidecar_is_not_a_page_in_the_diff(self):
         self.write("wiki/analyses/essay.md", question("open", "2026-01-01"))
         self.write("wiki/analyses/essay.pyramid.md", "outline\n")

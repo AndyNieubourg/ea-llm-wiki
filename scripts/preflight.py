@@ -95,6 +95,8 @@ def strip_fences(text):
         if fence is not None and fence[0] and depth < fence[0]:
             fence = None  # the blockquote ended, so the fence inside it did too
         m = FENCE_OPEN.match(line)
+        if m and m.group(2)[0] == "`" and fence is None and "`" in line[m.end():]:
+            m = None  # ```code``` on one line is inline code, not a fence opener
         if fence is None:
             if m:
                 fence = (m.group(1).count(">"), m.group(2)[0], len(m.group(2)))
@@ -327,7 +329,8 @@ def check_links(path, stems, findings, wiki=WIKI):
 
 def last_edited(path, base):
     """The date this change set last touched a page: today if it has uncommitted
-    changes, else the committer date of the newest commit since `base` touching it.
+    changes, else the author date of the newest commit since `base` touching it (the author
+    date survives a rebase or amend, the committer date does not).
 
     Comparing against today flagged every page on a branch older than a day, and
     the baseline cannot waive an `updated` finding. Any git failure answers today,
@@ -340,7 +343,7 @@ def last_edited(path, base):
                                cwd=ROOT, capture_output=True, text=True, check=True).stdout
         if dirty or not base:
             return today
-        when = subprocess.run(["git", "log", "-1", "--format=%cs", f"{base}..HEAD", "--", rel],
+        when = subprocess.run(["git", "log", "-1", "--format=%as", f"{base}..HEAD", "--", rel],
                               cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
     except (subprocess.CalledProcessError, OSError):
         return today

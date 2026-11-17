@@ -206,7 +206,7 @@ def main():
 
     moves = []
     for st, old, p in rows:
-        if not (is_page(p) and dir_of(p) == "questions"):
+        if not any(is_page(x) and dir_of(x) == "questions" for x in (p, old)):
             continue  # a questions/ folder outside wiki/ is not a question page
         if st not in ("M", "R") or not p.endswith(".md"):
             continue
