@@ -75,7 +75,7 @@ Fixes applied: ...
 
 ## Pre-flight (run before committing, and at the head of every lint)
 
-`scripts/preflight.py` runs the mechanical checks a reviewer would otherwise catch by hand: frontmatter that does not parse or lacks a required key, wikilinks and `![[attachments/...]]` embeds that resolve to nothing, links into pages the change set removed, and an entity page edited today whose `updated:` says otherwise. It takes about a second on the whole vault. On a branch it exits non-zero only on findings the branch introduced: it runs the same checks on the merge-base copy of each changed file, prints what was already there as inherited, and does not count it. `--all` counts every finding. It needs PyYAML (`pip install pyyaml`) and exits 2 rather than pass when it is missing.
+`scripts/preflight.py` runs the mechanical checks a reviewer would otherwise catch by hand: frontmatter that does not parse or lacks a required key, wikilinks and `![[attachments/...]]` embeds that resolve to nothing, links into pages the change set removed, and a changed entity page whose `updated:` is older than its last edit (the newest commit touching it, or today if it is uncommitted). It takes about a second on the whole vault. On a branch it exits non-zero only on findings the branch introduced: it runs the same checks on the merge-base copy of each changed file, prints what was already there as inherited, and does not count it. `--all` counts every finding. It needs PyYAML (`pip install pyyaml`) and exits 2 rather than pass when it is missing.
 
 ```bash
 python3 scripts/preflight.py            # files changed against origin/main, introduced findings only
@@ -93,7 +93,7 @@ python3 scripts/preflight.py --claim "the exact phrase you just retracted"
 
 A claim corrected in one place and left standing in others is the commonest way a wiki contradicts itself. The sweep covers `index.md`, `log.md` and `glossary.md` deliberately. Each hit is then a judgement: a dated log entry keeps what it believed on the day, and a correction note has to be true now.
 
-`scripts/lint-aggregates.py` sits beside it: read-only, dependency-free, it derives the log entry's aggregates from the tree and the diff against `origin/main`. It gates nothing. `--base R1 --head R2` reproduces a historical state.
+`scripts/lint-aggregates.py` sits beside it: read-only, dependency-free, it derives the log entry's aggregates from the tree and the diff against `origin/main`. It gates nothing. `--base R1 --head R2` reproduces a historical state; `--verbose` lists the question pages not ruminated this pass.
 
 ## Routed checks (deterministic, run every lint)
 
