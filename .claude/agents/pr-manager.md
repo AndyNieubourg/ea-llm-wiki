@@ -159,7 +159,7 @@ Wiki-convention rubric:
 - Tags: reserved-prefix tags (`#domain: #kb: #job:`) are well-formed;
   `#domain:` values are among the domains declared in `wiki/domains.md`.
 - Attachments: embedded `![[...]]` images exist on disk; no orphan attachment
-  folders; images reasonably compressed (CLAUDE.md image rules).
+  folders; images reasonably compressed (`.claude/rules/diagrams.md`).
 - Voice & scope: prose-heavy outputs read like the voice-guide; no tool scratch,
   agent reports, or client-confidential/PII material committed.
 - Diff sanity: no stray debug files, no `raw/` modifications, no accidental

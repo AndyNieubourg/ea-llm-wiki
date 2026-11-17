@@ -19,4 +19,4 @@ This skill turns the generic foundation scaffold into a personalised wiki for it
 ## Notes
 
 - If `INIT.md` is missing (already deleted after a prior run), this wiki has likely been initialised already — confirm with the owner before re-running, since re-init would overwrite their personalised `CLAUDE.md`.
-- This skill and `INIT.md` are setup-only. Once the wiki is initialised, both can be deleted; everyday work uses the four wiki workflows in `CLAUDE.md`.
+- This skill and `INIT.md` are setup-only. Once the wiki is initialised, both can be deleted; everyday work uses the four wiki workflow skills (`ingest`, `capture`, `query`, `lint`).

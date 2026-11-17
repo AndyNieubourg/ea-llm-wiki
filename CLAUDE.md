@@ -163,7 +163,7 @@ Tags carry the multi-job mechanism. Reserved prefixes:
 Free-form tags are fine alongside these.
 
 > [!note] Domain taxonomy is owner-tunable
-> The default `#domain:` set ships as the twelve EA disciplines in [[domains]]. The init interview confirms, prunes, or extends the set to match the owner's practice. The coverage machinery (below) reads whatever taxonomy [[domains]] declares — it is not hard-wired to a fixed count.
+> The default `#domain:` set ships as the twelve EA disciplines in [[domains]]. The init interview confirms, prunes, or extends the set to match the owner's practice. The coverage machinery (the domain coverage scan in the `lint` skill) reads whatever taxonomy [[domains]] declares — it is not hard-wired to a fixed count.
 
 ---
 
@@ -192,7 +192,7 @@ The `confidence:` field is similarly optional. Default behaviour: omit unless th
 
 The wiki uses images where they carry the concept, not as decoration. **Bias toward inclusion:** removing a redundant image later is cheap; reconstructing visual context after the source has slipped from memory is expensive.
 
-This section is **policy**: which track, whether a figure earns its place, where it is stored, how it is verified. The **syntax** lives in the `diagram-syntax` skill (Mermaid per-type references, PlantUML and the Hosiaisluoma ArchiMate macros, C4 layout science, the render-verify loop). Load it when you author or debug a diagram; this file still decides the track.
+This section keeps the track choice and the storage convention. **Everything downstream (PlantUML conventions, render verification, redrawing source figures, selection caps, file hygiene, the lint additions) lives in `.claude/rules/diagrams.md`. Read that file before you author, materially edit, or verify any figure.** Its `paths:` header may load it automatically; the explicit read on this pointer is the fallback that must not be skipped. The **syntax** lives in the `diagram-syntax` skill (Mermaid per-type references, PlantUML and the Hosiaisluoma ArchiMate macros, C4 layout science, the render-verify loop); this file still decides the track.
 
 **Four tracks, in order of preference:**
 
@@ -203,88 +203,11 @@ This section is **policy**: which track, whether a figure earns its place, where
 
 Tracks compose: include both an iconic source image and a redrawn Mermaid version when each adds distinct value.
 
-### PlantUML conventions
-
-ArchiMate diagrams use the **Hosiaisluoma ArchiMate stdlib** (in the PlantUML standard library), opening with:
-
-```plantuml
-@startuml
-!include <archimate/Archimate>
-title <descriptive title>
-skinparam linetype ortho
-```
-
-Element macros: `<Layer>_<Element>(id, "label")` — e.g. `Motivation_Goal(g1, "…")`, `Business_Process(bp, "…")`. Relationship macros: `Rel_<Type>(source, target)` — e.g. `Rel_Realization(g2, g1)`. The full per-layer macro tables, the macros that do **not** exist in the stdlib, and worked views live in the `diagram-syntax` skill (`references/archimate-hosiaisluoma.md`) — use it rather than guessing macro names. For non-ArchiMate PlantUML (sequence, C4 via `C4-PlantUML`, deployment), include the relevant stdlib and omit the ArchiMate include.
-
 **Choice:** ArchiMate any-layer, C4, UML deployment → PlantUML; bespoke-layout / heat / matrix / dashboard hero figures on deliverable or portfolio pages → designed SVG (claims in markdown, generator committed); everything else, and anything where portability or later-session maintainability matters → Mermaid.
-
-**Output: SVG by default** (scales cleanly, better for labelled ArchiMate). Per-block override with ` ```plantuml-png ` or ` ```plantuml-ascii `.
-
-**Rendering: local JAR** (`wiki/.obsidian/plantuml/plantuml.jar`, GPL, not committed — download once per the README). Fast and offline; prereqs and fallback are in track 2.
-
-### Visual verification (Mermaid / PlantUML)
-
-A diagram isn't *done* until confirmed to render: a malformed block shows as an error box only at view time, and a text diff never catches it. So verify every diagram you author or materially edit. **Prefer Method A in a worktree** (the usual case); Method B for interactive work in the live vault.
-
-**Method A — headless render (default; concurrency-safe).** Renders the file on your branch with no Obsidian, safe across parallel worktrees. Needs `mmdc` on PATH and, for PlantUML, `java` + `dot`.
-1. Render to a temp path outside `wiki/`:
-   - Mermaid: block body → `/tmp/diagram.mmd`, then `mmdc -i /tmp/diagram.mmd -o /tmp/diagram-check.png`.
-   - PlantUML: `@startuml…@enduml` → `/tmp/diagram.puml`, then `java -jar wiki/.obsidian/plantuml/plantuml.jar -tpng /tmp/diagram.puml` (`-tsvg` to match the vault default).
-2. `Read` the PNG: did it draw, or is there an error box / empty render?
-3. Delete the temp files (tool scratch; keep them out of `wiki/`).
-
-**Method B — Obsidian live-vault screenshot (interactive; main-checkout only).** Use to see the diagram in page context.
-1. Gate: needs Obsidian running and the CLI enabled (`pgrep -x Obsidian`; the `obsidian-cli` conditional gate).
-2. Focus the page (`obsidian read path="wiki/<…>.md"`), ensure Reading/Live-Preview, then `obsidian dev:screenshot path="/tmp/diagram-check.png"` (outside the vault). `obsidian dev:errors` surfaces silent parse failures.
-3. Confirm + clean up as in Method A.
-
-> [!warning] The live vault is the main checkout, not your worktree
-> Obsidian renders the main-checkout `wiki/` on its own branch (usually `main`) — it does **not** see worktree edits, so Method B can't render unmerged worktree pages; use Method A. Don't repoint the live vault at a branch: one Obsidian instance serves all worktrees, so repointing is a global mutex that cross-contaminates parallel screenshots (and git won't check the same branch out twice). Last resort: a per-branch scratch note (`wiki/_diagcheck-<branch>.md`), screenshot, delete — still not concurrency-safe.
-
-> [!important] Edit the worktree's own `wiki/`, not the main checkout
-> `wiki/` exists as a separate working copy per worktree. Write to the worktree's `wiki/…`, not the main checkout — editing the main copy lands changes on `main` outside your branch. Verify cwd first.
-
-**Fallback:** if no renderer is available and the CLI gate fails, do a syntax self-check and label the diagram *rendered-unverified*. Never claim a render you haven't observed (the diagram form of "absence is a claim").
-
-> [!warning] Mermaid node labels must not start with a list marker
-> Obsidian parses label text as Markdown, so a label that **begins** with `N.`/`N)` or `-`/`*`/`+` then a space renders as an "Unsupported markdown: list" error box. `mmdc` (Method A) renders it cleanly — this is the one failure Method A misses, so an Obsidian render (Method B) is the only check that catches it.
-> - **Numbered:** write `N —` not `N.` (e.g. `["4 — Agent"]`); em dash in labels is house style.
-> - **Bullet / `+` where the marker is meaningful:** swap the trailing space for a non-breaking space (U+00A0) — looks identical, no longer parses as a list.
-> - A marker mid-label (after `<br/>`, inside `<b>…</b>`) is safe; only the label *start* triggers it.
 
 **Storage.** `wiki/attachments/<entity-type>/<page-slug>/<name>.<ext>`, mirroring entity structure — e.g. a figure on `sources/strengholt-medallion-ch03.md` → `wiki/attachments/sources/strengholt-medallion-ch03/medallion-overview.png`. Kebab-case, content-describing filenames; add source coordinates when lineage matters (`fig-3-1-medallion-flow.png`).
 
 **Embedding.** `![[attachments/sources/<slug>/<image>.png]]`, with a one-line prose caption under it saying what the image shows and why it's here. Cite the source page if from `raw/` (`Source: [[strengholt-medallion-ch03]], figure 3.1`).
-
-**Selection — judge by the page's image relevance, then bias toward more.** Image count is a property of the page, not its entity type:
-- **High** (subject *is* visual structure — notations, reference architectures, topology, process flows): many figures, 8–15+; the diagrams are the content.
-- **Medium** (benefits from a visual but doesn't hinge on one — most `concepts/`, `frameworks/`, `cases/`, chapter `sources/`): ~2–6, more if the source is image-dense, 1–2 if thin.
-- **Low** (conceptual/argumentative/definitional — ADRs, terminology, governance text): zero is correct; don't manufacture a diagram for a quota.
-- `analyses/`: scale to the synthesis, up to ~10 for a visually broad essay, fewer for a tight argument.
-
-**Text diagrams (Mermaid, PlantUML) and designed SVG don't count toward the cap** — they're versioned source text (the SVG paired with its committed generator); use them as the page benefits. The soft caps govern only **committed binary files** (screenshots, PNG/JPG, machine-exported SVG, photos), which cost repo bytes and can't be diffed.
-
-**Skip a committed image only if** (a) pure decoration, (b) it duplicates an image or text diagram already on the page, (c) the subject is low-relevance, or (d) it would commit confidential/PII material. Prefer a text diagram over a committed image whenever it captures the structure.
-
-**What not to commit:** high-res scans where a tight crop would do; screenshots of plain text you could transcribe; confidential/PII material in a shared/public repo (set posture at init — {{CONFIDENTIALITY_NOTE}}).
-
-**File hygiene.**
-- Compress before committing (PNG via `pngquant`/`oxipng`, JPG via `jpegoptim`; aim <500 KB, ideally <200 KB).
-- Crop tightly to the load-bearing region.
-- On page delete/rename, update or delete the matching `attachments/<entity>/<slug>/` folder.
-
-**Lint additions (Phase 2).**
-- Orphan attachment folders → flag for deletion.
-- Visually-rich pages with no images → "consider adding image" (soft, not an error).
-- Repo-size delta; alert if attachments grew >50 MB in one pass (Git LFS early warning).
-- Mermaid-candidate scan: simple-shape image files a text diagram could replace → propose drafts.
-- Broken `![[]]` embeds.
-
-**During `ingest`** (step 3, diagram extraction): skim the artefact for figures/2×2s/frameworks; for each decide redraw-as-Mermaid / screenshot / both / skip; lean to include; cross-link extracted images into derived `concepts/` and `frameworks/` pages where more germane there than on the source.
-
-**During `capture`:** inbox notes embed images freely (pre-triage); at lint the image either earns its place in the promoted page or moves with the note when filed.
-
-**No per-image media notes:** caption + surrounding prose already contextualise; a third layer (one `.md` per image) adds work, not information.
 
 ---
 
@@ -298,124 +221,15 @@ When a new term appears, add it to `glossary.md`. Use the canonical term consist
 
 ## Workflows
 
-Four workflows: `ingest`, `capture`, `query`, `lint`. At any moment, you are in exactly one.
+Four workflows: `ingest`, `capture`, `query`, `lint`. At any moment, you are in exactly one. Each is a project skill under `.claude/skills/<name>/`, loaded when invoked rather than carried in every session. The Skills table below is the single enumeration of the four, as it is for every other skill; this section does not repeat their procedures.
 
-### `ingest` — process a source from `raw/`
+Three rules out of those procedures stay here, because a session can breach them without ever invoking the skill:
 
-Heavy by design. Cross-linking is the wiki's whole point; the steps below each pay rent.
+- **Source-first.** Every raw file gets a `sources/` page that reflects it, even a thin one. Concepts, frameworks, cases and questions are *derived* from that page, never extracted straight to `concepts/` while skipping the source.
+- **Absence is a claim, not a default.** Never say "X isn't in the wiki" without searching multiple terms, synonyms and the glossary aliases first. On a genuine miss, name the terms you searched.
+- **`overview.md` is never updated inline.** It is rewritten during `lint`, deliberately and with breadth, to avoid recency bias and overview thrashing.
 
-**Source-first principle.** Every raw file gets a `sources/` page that reflects it. That page is the canonical reflection of the raw artifact and the auditable bridge between `raw/` and the rest of the wiki. Concepts, frameworks, cases, and questions are *derived* from the source page after the reflection exists — not extracted directly to `concepts/` while skipping the source. This applies even when the raw file is thin (a short deck, a single article); a thin source page is fine, a missing one is not.
-
-1. Read the source. For long sources (books, course modules), confirm whether to ingest in full now or chunk by section across sessions.
-2. Briefly discuss takeaways. Ask 1–3 clarifying questions only if the material is dense or ambiguous.
-3. Create or update the parent page in `sources/` (per the source-first principle above). For long sources, also create atomic notes in `concepts/` per chapter or per distinct idea, each linked back to the source.
-4. Identify which existing pages are affected. Update them. Add back-links.
-5. Create new entity pages (concept, framework, case, question) as the material warrants. Don't force-fit into existing categories.
-6. Update `glossary.md` with new or refined terms; flag conflicts with existing entries.
-7. Update `index.md`.
-8. Append to `log.md`:
-   ```
-   ## [YYYY-MM-DD] ingest | <source title>
-   Pages created: ...
-   Pages updated: ...
-   Key additions: ...
-   ```
-
-`overview.md` is **not** updated inline. That happens during `lint`, to avoid recency bias and overview thrashing.
-
-A single ingest may touch 5–15 pages. That is expected.
-
-### `capture` — quick note for half-thoughts
-
-Low friction by design. Use this for anything I dump in without going through a raw source — meeting reflections, shower ideas, a paragraph I want to write before I forget.
-
-1. Create a dated page in `inbox/` (e.g. `2026-05-21-data-mesh-and-eu-ai-act.md`), frontmatter `type: inbox`. Body is whatever I wrote.
-2. Add tags if obvious.
-3. Append a one-line entry to `log.md`.
-
-No glossary update, no index update, no cross-linking. Triage happens during `lint`.
-
-### `query` — answer a question against the wiki
-
-1. **Find the material before answering — search by concept, not just by the query's surface words.**
-   - Read `index.md` *by section* (heading outline first, then load the relevant section), and *grep* `glossary.md` for the term — don't read either whole.
-   - Run multi-term / OR-alternation ripgrep across **all** entity folders (`sources/ concepts/ frameworks/ analyses/ cases/ questions/`), not just the obvious one. Search the canonical term **and** synonyms; check the glossary alias for vendor/field/client labels; search filenames (kebab-case), not only body text.
-   - Expand from the nearest hit along the graph: follow its `[[links]]`, and pull pages that share a `sources:` entry or a `#domain:` / `#kb:` tag (shared-source and shared-tag are strong relevance signals — often stronger than a direct link).
-   - **Absence is a claim, not a default.** Never say "X isn't in the wiki" without searching multiple terms first. If the term is ambiguous or a field/vendor/client label, resolve *every* reading before answering. On a genuine miss, say "I didn't find it under the terms I searched: [list them]" — not a flat "it's not here," which hides the vocabulary gap that's often the real cause.
-2. Synthesise a clear answer with citations to wiki pages (`[[links]]`).
-3. If the question matches an existing page in `questions/`, update that page — set `last-ruminated`, refine the body, adjust `status` if my thinking has actually shifted. **This is rumination — it lives inside query, not as a separate workflow.**
-4. If it doesn't match an existing question, ask whether to file it as a new question page or as an analysis. File accordingly.
-5. Append to `log.md`:
-   ```
-   ## [YYYY-MM-DD] query | <question summary>
-   Pages consulted: ...
-   Output filed: <yes/no — where>
-   ```
-
-### `lint` — periodic re-reading pass
-
-The compounding workflow. Run weekly, after a batch of ingests, or on demand. Two phases.
-
-**Phase 1 — synthesis (forward):**
-- Re-read recent additions (use `log.md` to scope).
-- Triage `inbox/`: promote notes to proper entity pages, merge into existing pages, or drop.
-- Rewrite `overview.md` deliberately, with breadth — not as a patch.
-- Surface synthesis candidates: concept clusters with enough linked notes to earn an essay in `analyses/`.
-
-**Phase 2 — integrity and gaps (backward):**
-- Contradictions between pages.
-- Stale claims superseded by newer sources.
-- Orphan pages (no inbound links).
-- Missing concept pages (terms used but undefined).
-- Missing cross-references that should exist.
-- Terminology drift across pages.
-- **Gap detection on `questions/`:**
-  - *Starved* — questions with zero or low linked notes; no source has informed them yet.
-  - *Blocked* — questions stuck at `open` despite many linked notes; ideas aren't converging, need a writing pass.
-  - *Converging* — questions whose notes cluster across sources; possible essay candidates.
-  - *Systemic gaps* — recurring `gap` strings across multiple question pages; persistent blind spots.
-- **Rumination candidates** — questions whose `last-ruminated` date is old enough to warrant re-asking.
-- **Log rotation** — if `wiki/log.md` holds entries from more than the current month, roll each completed month into `wiki/log/YYYY-MM.md`, leaving the current month plus a one-line pointer block to the archive in `log.md`. Keeps the file the session-start checklist reads small; append-only growth otherwise pushes it past 1 MB.
-- **Skills-table drift check** — the Skills table below is hand-maintained and silently drifts from the skills that actually exist. Run from the repo root:
-
-  ```bash
-  diff <(ls .claude/skills/ | sort) <(grep -E '^\| (⬇ )?`[a-z][a-z-]*`' CLAUDE.md | sed -E 's/^\| (⬇ )?`([a-z-]+)`.*/\2/' | sort -u)
-  ```
-
-  Silence is a pass. A `<` line is a skill on disk with no table row; a `>` line is a row for a skill that is absent — fix the table for the first, and for the second either run `setup.sh` (if it is a ⬇ installed skill) or investigate why a committed skill is gone. The `session-start.sh` hook reports the declared-but-missing half of this automatically at session start; the lint check adds the reverse direction (present-but-undeclared).
-- **Domain coverage scan** — for each `#domain:<name>` tag listed in [[domains]]. **Rebuild `wiki/coverage.md`** from this scan as a materialised matrix; `wiki/coverage.base` is the live companion view. Per-domain metrics (counts alone are weak signal — track the relative and qualitative dimensions too):
-
-  | Metric | Definition | Why it matters |
-  |---|---|---|
-  | **Pages (N)** | Count of unique pages carrying the tag, across `concepts/ sources/ frameworks/ analyses/ cases/ artifacts/`. | Absolute volume — anchor metric. |
-  | **Δ since last lint** | Net change in N since the previous scan. | Direction of travel. |
-  | **% of domain-tagged corpus** | N ÷ Σ(N across all domains). Sum exceeds 100% because multi-domain pages are counted in each tag. | Relative weight. Surfaces over- and under-represented domains independent of total wiki size. |
-  | **% of vault** | (unique pages tagged with this domain) ÷ (total wiki pages, excluding `inbox/`). | Emphasis vs. the whole. |
-  | **Entity mix** | Breakdown across {concept, source, framework, analysis, case, artifact}. Both counts and %. | A domain that's 80% sources and 5% concepts is reading-heavy and atomisation-light. |
-  | **Concept share** | concepts ÷ N. | Atomic-note density. Low = passive ingest only; high = active synthesis. |
-  | **Source diversity** | Distinct `sources/` pages contributing. Flag any domain depending on <3 sources for ≥30% of pages — single-source risk. | Robustness of the cluster. |
-  | **Analyses count** | `analyses/` pages tagged with this domain. | Synthesis pressure released. |
-  | **Synthesis lag** | (analyses ÷ N), inverted. High = lots of material, little synthesis. The `dense`/`over-saturated` buckets with zero analyses are the urgent ones. | Earns or doesn't earn the over-saturated label. |
-  | **Cross-domain bridges** | Pages tagged with this domain AND ≥1 other. Both count and as % of N. | High = the domain integrates; low = it's a silo. |
-  | **Confidence profile** | Among `concepts/` and `analyses/`: split across {settled, working, speculative, single-source, unmarked}. Default-omitted pages count as the implicit `settled` per the Relationships taxonomy convention. | Quality signal. |
-  | **Crystallisation closure** | Among `concepts/` and `sources/` pages in synthesised clusters: count with `crystallized-into:` populated. | Lint integrity — closes the loop on completed analyses. |
-  | **Question health** | Linked `questions/` page status (open / converging / answered / dropped), `gap:` populated or empty, days since `last-ruminated`. | Active-inquiry signal. |
-  | **Recency** | Most recent `updated:` across the domain's pages; days since. | Staleness signal. |
-  | **Status (2D)** | Volume × Synthesis. **starved** (N<25 AND source-diversity<3 AND analyses=0) / **forming** (N<25, growing or has ≥1 analysis) / **balanced** (N 25–49) / **synthesis-ripe** (N≥50 AND analyses<2) / **healthy-saturated** (N≥50 AND analyses≥2). | Surfaces synthesis lag distinctly from raw volume. |
-
-  Volume-only bucket thresholds (kept as input to the 2D status, also reported alongside it for continuity): **thin** <25, **balanced** 25–49, **dense** 50–69, **over-saturated** 70+. Re-tune if dispersion shifts substantially or the owner's domain set differs in size.
-- **Relationship-frontmatter audit** — scan prose for phrases that imply a structured relationship missing from frontmatter ("supersedes Kaiser 2019", "contradicts Strengholt's claim", "derived from cluster X") and propose `relationships:` additions. Pair with the crystallization-closure check below.
-- **Crystallization closure** — when an `analyses/` page exists, ensure each source concept has `crystallized-into:` pointing back to it. Same for `synthesised-into:` on the question that motivated the analysis. Closes the loop on completed synthesis work so future `query` sees it immediately.
-
-Propose fixes, rumination candidates, and synthesis candidates. Apply what I confirm. Append to `log.md`:
-```
-## [YYYY-MM-DD] lint
-Synthesis: ...
-Integrity issues: ...
-Gaps (starved / blocked / converging / systemic): ...
-Rumination candidates: ...
-Fixes applied: ...
-```
+**Before committing any wiki change, run `python3 scripts/preflight.py`** (frontmatter, dead links, missing embeds, stale `updated:`). The `lint` skill documents its flags and the companion `scripts/lint-aggregates.py`.
 
 ---
 
@@ -424,12 +238,16 @@ Fixes applied: ...
 Skills live under `.claude/skills/` to make Obsidian-native conventions executable and to support deep reconnaissance work. **CLAUDE.md is the authoritative spec — these skills are *executable adjuncts*, not rule sources.** If a skill's defaults conflict with anything in this file (entity schema, frontmatter taxonomy, source-first principle, workflow names, tag prefixes, voice anchor), this file wins. Skills are invoked when their trigger conditions match, but they bend to the wiki's conventions, not the other way around.
 
 Three provenances, all committed-or-installed honestly (see [`NOTICE`](NOTICE)):
-- **The wiki's own** (Apache-2.0, committed): `init-wiki`, the `pr-manager` agent, `voice-interview` (co-authored by the owner with LLM assistance and informed by public guidance on writing with LLMs — no third-party source redistributed in it), `critical-reviewer` (owner-authored anti-sycophancy review skill, invoked by the `pr-manager` agent's review gate — no third-party text reproduced), `pyramid-structure` (owner-authored operationalisation of Minto's Pyramid Principle and related public method; no third-party text reproduced), `voice-draft`, and `voice-edit`.
+- **The wiki's own** (Apache-2.0, committed): the four workflow skills (`ingest`, `capture`, `query`, `lint`), `init-wiki`, the `pr-manager` agent, `voice-interview` (co-authored by the owner with LLM assistance and informed by public guidance on writing with LLMs — no third-party source redistributed in it), `critical-reviewer` (owner-authored anti-sycophancy review skill, invoked by the `pr-manager` agent's review gate — no third-party text reproduced), `pyramid-structure` (owner-authored operationalisation of Minto's Pyramid Principle and related public method; no third-party text reproduced), `voice-draft`, and `voice-edit`.
 - **Adapted third-party** (committed, with attribution): `deep-recon` is adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon) (MIT) — voice-anchored to this wiki and re-routed to its entity folders. `diagram-syntax` combines an owner-authored orchestration layer (SKILL.md, the verified ArchiMate/Hosiaisluoma reference, the render-verify loop) with reference files vendored from [`tractorjuice/arc-kit`](https://github.com/tractorjuice/arc-kit) (MIT; itself sourced from the mermaid.js.org docs via `WH-2099/mermaid-skill` and from `SpillwaveSolutions/plantuml`) — each vendored file records its own provenance and is refreshed from upstream, not hand-edited. Upstream MIT notices are reproduced in `NOTICE`.
 - **Installed, not committed** (the **⬇** rows below): the Obsidian-native skills from [`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills) (Steph Ango's official Agent Skills, MIT), installed by `setup.sh` / `setup.ps1` into `.claude/skills/` (gitignored). Install with the setup script or `/plugin marketplace add kepano/obsidian-skills`.
 
 | Skill | Trigger | Primary use here |
 |---|---|---|
+| `ingest` | "ingest this", a file in `raw/` or attached in chat | Process a source source-first: the `sources/` page, then derived concepts, frameworks, cases and questions, back-links, glossary, index, log. 5–15 pages per run is expected. |
+| `capture` | a half-thought, meeting reflection or paragraph with no source | Quick dated note to `inbox/`. No glossary, index or cross-linking; triage happens at `lint`. |
+| `query` | a question the wiki should answer | Concept-first search across every entity folder, synthesis cited to `[[links]]`, then rumination on the matching `questions/` page. |
+| `lint` | "run a lint", weekly, after a batch of ingests | The compounding pass: inbox triage and the `overview.md` rewrite forward; pre-flight, contradictions, orphans, question gaps, the skills-table drift check, the routed checks and the domain coverage rebuild backward. |
 | `init-wiki` | first-time setup of this foundation | Interviews the owner and tailors `CLAUDE.md`, `README.md`, `domains.md`, and the voice guide. Run once, then it's dormant. |
 | `voice-interview` | "update my voice guide", "interview me about my writing" | Extracts the owner's writing voice from real deliverables and folds it into [[voice-guide]]. Run during init and whenever the voice anchor drifts. |
 | ⬇ `obsidian-markdown` | `.md` files; mentions of wikilinks, callouts, frontmatter, embeds | Codifies the wikilink / callout / block-id / footnote conventions this wiki uses. Use callouts (`> [!warning]`) for in-page emphasis, block IDs (`^id`) when linking to specific paragraphs. |
@@ -472,7 +290,7 @@ If in doubt, use the file-level tools — they're deterministic and don't depend
 
 ### Semantic search — Smart Connections (Obsidian)
 
-The vault ships with the **Smart Connections** community plugin (`wiki/.obsidian/plugins/smart-connections/`). It runs a local embedding model (`wiki/.smart-env/`, no API key, no external service) and keeps an incremental vector index, catching the **vocabulary-mismatch** recall failure — related notes whose words differ from the query (the glossary alias bridge's job, done semantically). It's a *browsing* aid in Obsidian (Connections pane, semantic search), **not** callable from a Claude Code session: in-session recall still uses the `query` protocol above plus glossary aliases. Plugin code is not committed — install from Obsidian's community browser like the PlantUML plugin (listed in `community-plugins.json`); the embeddings store (`wiki/.smart-env/`) and `data.json` are gitignored, regenerated on demand.
+The vault ships with the **Smart Connections** community plugin (`wiki/.obsidian/plugins/smart-connections/`). It runs a local embedding model (`wiki/.smart-env/`, no API key, no external service) and keeps an incremental vector index, catching the **vocabulary-mismatch** recall failure — related notes whose words differ from the query (the glossary alias bridge's job, done semantically). It's a *browsing* aid in Obsidian (Connections pane, semantic search), **not** callable from a Claude Code session: in-session recall still uses the `query` skill's protocol plus glossary aliases. Plugin code is not committed — install from Obsidian's community browser like the PlantUML plugin (listed in `community-plugins.json`); the embeddings store (`wiki/.smart-env/`) and `data.json` are gitignored, regenerated on demand.
 
 ### Voice anchor
 

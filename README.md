@@ -13,7 +13,7 @@ This repo is the **starting point**, not a finished wiki. It ships the structure
 
 `/init-wiki` (protocol in [`INIT.md`](INIT.md)) interviews you — who you are, what the wiki is for, which EA disciplines you work across, your locale and confidentiality posture — then rewrites `CLAUDE.md`, `README.md`, `wiki/domains.md`, and the voice guide in place and removes the foundation placeholders. It hands the voice work to the `voice-interview` skill, which measures your real writing. Run it once; then delete `INIT.md` and the `init-wiki` skill.
 
-Until you run it, the `{{PLACEHOLDER}}` values in `CLAUDE.md` are generic defaults for a generalist EA.
+Until you run it, the `{{PLACEHOLDER}}` values in `CLAUDE.md` (and the one in `.claude/rules/diagrams.md`) are generic defaults for a generalist EA.
 
 ## What this is for
 
@@ -21,7 +21,7 @@ The wiki's primary, always-on job is to be your compounding knowledge base on en
 
 ## Operating manual
 
-The wiki is driven by Claude Code against [`CLAUDE.md`](CLAUDE.md), the canonical operating manual — entity types, page format, tagging conventions, image/diagram rules, and the four workflows (`ingest`, `capture`, `query`, `lint`). Read `CLAUDE.md` before touching the wiki.
+The wiki is driven by Claude Code against [`CLAUDE.md`](CLAUDE.md), the canonical operating manual — entity types, page format, tagging conventions, image/diagram rules, and the skills table. The four workflows (`ingest`, `capture`, `query`, `lint`) are project skills under [`.claude/skills/`](.claude/skills/), loaded when invoked; the downstream diagram policy (render verification, selection, hygiene) is a path-scoped rule in [`.claude/rules/diagrams.md`](.claude/rules/diagrams.md). Read `CLAUDE.md` before touching the wiki.
 
 ## Layout
 
@@ -100,7 +100,15 @@ java -version   # should print the OpenJDK version, not "Unable to locate a Java
 
 Claude Code drives the four workflows. Install per [claude.com/claude-code](https://claude.com/claude-code).
 
-### 4. Optional — defuddle CLI
+### 4. PyYAML, for the pre-flight checks
+
+`scripts/preflight.py` parses frontmatter with a real YAML parser, and exits 2 (did not run) without it:
+
+```bash
+python3 -m pip install pyyaml
+```
+
+### 5. Optional — defuddle CLI
 
 Only needed for the `defuddle` skill (cleans web-page clutter before ingest):
 
@@ -138,9 +146,11 @@ Then in Obsidian: **Settings → Community plugins → Browse**, and install **P
 ### What ships in the repo
 
 - **Obsidian config** under `wiki/.obsidian/` — which plugins to enable (`community-plugins.json`), PlantUML settings (`obsidian-plantuml/data.json`), core-plugin selections (Bases, Daily Notes, Properties, …). The plugin *code* and the PlantUML JAR are **not** committed — see step 6.
-- **Claude Code skills** under `.claude/skills/` — `init-wiki`, `voice-interview`, `voice-draft`, `voice-edit`, `pyramid-structure`, and `critical-reviewer` (the wiki's own), `deep-recon` (adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon), MIT, attributed in [`NOTICE`](NOTICE)), and `diagram-syntax` (owner-authored orchestration + ArchiMate reference over Mermaid/PlantUML reference files vendored from [`tractorjuice/arc-kit`](https://github.com/tractorjuice/arc-kit), MIT, attributed in [`NOTICE`](NOTICE)) — plus the **`pr-manager` agent** under `.claude/agents/`.
+- **Claude Code skills** under `.claude/skills/` — the four workflows (`ingest`, `capture`, `query`, `lint`), `init-wiki`, `voice-interview`, `voice-draft`, `voice-edit`, `pyramid-structure`, and `critical-reviewer` (the wiki's own), `deep-recon` (adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon), MIT, attributed in [`NOTICE`](NOTICE)), and `diagram-syntax` (owner-authored orchestration + ArchiMate reference over Mermaid/PlantUML reference files vendored from [`tractorjuice/arc-kit`](https://github.com/tractorjuice/arc-kit), MIT, attributed in [`NOTICE`](NOTICE)) — plus the **`pr-manager` agent** under `.claude/agents/`.
 - **The ingest-coverage tool** at `wiki/_resources/ingest-coverage.py` — a generated `raw/` → wiki coverage manifest backing the `sources:` completeness rule (design note beside it; shipped dormant, activate per its *Activation* section).
 - **Claude Code hooks** under `.claude/hooks/`, wired by the committed `.claude/settings.json`: `guard-raw.sh` enforces `raw/` immutability and blocks credential-shaped content at write time (tests beside it in `guard-raw.test.sh`), and `session-start.sh` reports skills that are declared in the `CLAUDE.md` skills table but missing on disk, so a session never silently claims a skill it doesn't have. Both need `jq` (step 1).
+- **Pre-flight checks** under `scripts/`: `preflight.py` (frontmatter parse and required keys, dead wikilinks, missing embeds, links into removed pages, stale `updated:`; fails a branch only on findings it introduced; needs PyYAML) and `lint-aggregates.py` (derives the numbers a lint log entry restates). Tests in `scripts/tests/`.
+- **The diagram rules** in `.claude/rules/diagrams.md`, loaded when a wiki page or diagram file is touched.
 - **All authoring conventions** in `CLAUDE.md`.
 
 ### What you install separately (third-party, own licenses)
@@ -181,6 +191,6 @@ Built on [Andrej Karpathy's LLM wiki pattern](https://gist.github.com/karpathy/1
 
 Copyright 2026 Andy Nieubourg. Licensed under the **Apache License, Version 2.0** — see [`LICENSE`](LICENSE).
 
-This license covers the wiki's own work: the operating manual (`CLAUDE.md`), the workflows, the directory structure, the domain taxonomy, the `init-wiki`, `voice-interview`, `voice-draft`, `voice-edit`, `pyramid-structure` and `critical-reviewer` skills, the `pr-manager` agent, the voice-guide *template*, and the Obsidian config authored here. It does **not** cover: the `deep-recon` skill (adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon), retained under its own **MIT** license), or the third-party tools installed separately (the PlantUML JAR under GPL, the `obsidian-plantuml` / Smart Connections plugins, and the `kepano/obsidian-skills` set). Each retains its own license — see [`NOTICE`](NOTICE).
+This license covers the wiki's own work: the operating manual (`CLAUDE.md`), the workflows, the directory structure, the domain taxonomy, the `ingest`, `capture`, `query`, `lint`, `init-wiki`, `voice-interview`, `voice-draft`, `voice-edit`, `pyramid-structure` and `critical-reviewer` skills, the `pr-manager` agent, the `scripts/` checks, the voice-guide *template*, and the Obsidian config authored here. It does **not** cover: the `deep-recon` skill (adapted from [`kvarnelis/deep-recon`](https://github.com/kvarnelis/deep-recon), retained under its own **MIT** license), or the third-party tools installed separately (the PlantUML JAR under GPL, the `obsidian-plantuml` / Smart Connections plugins, and the `kepano/obsidian-skills` set). Each retains its own license — see [`NOTICE`](NOTICE).
 
 Any wiki *content* you create after running `/init-wiki` (your `wiki/` pages, attachments, and personalised voice guide) is yours and is not part of this licensed scaffold. Keep that content in a **separate, private** repository if it derives from client work — `raw/` is gitignored precisely so source documents never enter version control, but derived pages can still carry confidential material.

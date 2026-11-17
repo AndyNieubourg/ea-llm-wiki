@@ -1,3 +1,11 @@
+---
+title: Ingest coverage manifest
+type: reference
+created: 2026-08-05
+updated: 2026-11-17
+tags: [tooling, ingest, lint-reference]
+---
+
 # Ingest coverage manifest — design note
 
 **Status: optional tool, shipped dormant.** The generator works; it is **not wired into the `lint`/`ingest` workflows** by default. Activate it when a full-corpus "ingest everything not ingested" sweep becomes a recurring need (see *Activation* below). Until then it is a convenience: run it before a sweep instead of re-grepping the whole corpus.

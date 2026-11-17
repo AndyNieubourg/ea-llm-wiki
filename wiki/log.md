@@ -2,7 +2,7 @@
 
 Append-only record of every workflow run. Newest entries at the bottom. The session-start checklist reads only the **tail** of this file, so keep it lean — `lint` rolls completed months into `wiki/log/YYYY-MM.md` once this grows past the current month.
 
-Entry formats are defined per-workflow in [[CLAUDE]] (`ingest` / `capture` / `query` / `lint`).
+Entry formats are defined in each workflow skill (`.claude/skills/{ingest,capture,query,lint}/SKILL.md`).
 
 ---
 
