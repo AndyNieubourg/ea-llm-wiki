@@ -56,9 +56,17 @@ class Vault:
         self.git("update-ref", "refs/remotes/origin/main", "HEAD")
         self.git("checkout", "-q", "-b", "claude/test")
 
-    def commit(self):
+    def commit(self, date=None):
         self.git("add", "-A")
-        self.git("commit", "-q", "-m", "branch")
+        env = None
+        if date:
+            stamp = f"{date}T12:00:00"
+            env = dict(os.environ, GIT_AUTHOR_DATE=stamp, GIT_COMMITTER_DATE=stamp)
+        subprocess.run(["git", "commit", "-q", "-m", "branch"], cwd=self.dir,
+                       check=True, capture_output=True, env=env)
+
+    def remove(self, rel):
+        self.git("rm", "-q", f"wiki/{rel}")
 
     def run(self, *flags):
         res = subprocess.run([sys.executable, "scripts/preflight.py", *flags],
@@ -147,7 +155,7 @@ class Baseline(unittest.TestCase):
         self.v.commit()
         code, out = self.v.run()
         self.assertEqual(code, 1, out)
-        self.assertIn("`updated: 2026-01-02` but edited today", out)
+        self.assertIn(f"`updated: 2026-01-02` but last edited {TODAY}", out)
 
     def test_an_unreadable_baseline_fails_closed(self):
         # The merge base resolves but its tree cannot be read. A shim that fails
@@ -169,6 +177,134 @@ class Baseline(unittest.TestCase):
         self.assertEqual(res.returncode, 1, out)
         self.assertIn("baseline unavailable", out)
         self.assertIn("[[ghost]] resolves to nothing", out)
+
+
+DAYS_AGO = (datetime.date.today() - datetime.timedelta(days=3)).isoformat()
+
+
+def dated_page(title, body, updated):
+    return (f"---\ntitle: {title}\ntype: concept\ncreated: 2026-01-01\n"
+            f"updated: {updated}\ntags: []\n---\n\n{body}\n")
+
+
+class Hardening(unittest.TestCase):
+    """Paths git would quote, fences inside callouts, bounded frontmatter, dotted
+    page names, and an `updated:` check that reads the commit date, not today."""
+
+    def setUp(self):
+        self.v = Vault()
+        self.v.write("concepts/alpha.md", page("alpha", "See [[beta]]."))
+        self.v.write("concepts/beta.md", page("beta", "Back to [[alpha]]."))
+        self.v.commit_main()
+
+    def tearDown(self):
+        self.v.close()
+
+    def test_a_path_with_a_space_is_checked(self):
+        self.v.write("concepts/with space.md", page("with space", "See [[phantom]]."))
+        self.v.commit()
+        code, out = self.v.run()
+        self.assertEqual(code, 1, out)
+        self.assertIn("with space.md: [[phantom]] resolves to nothing", out)
+
+    def test_a_non_ascii_path_is_checked(self):
+        self.v.write("concepts/caf\u00e9.md", page("caf\u00e9", "See [[phantom]]."))
+        self.v.commit()
+        code, out = self.v.run()
+        self.assertEqual(code, 1, out)
+        self.assertIn("caf\u00e9.md: [[phantom]] resolves to nothing", out)
+
+    def test_deleting_a_page_with_a_space_finds_its_inbound_links(self):
+        self.v.write("concepts/beta two.md", page("beta two", "Text."))
+        self.v.write("concepts/alpha.md", page("alpha", "See [[beta]] and [[beta two]]."))
+        self.v.git("add", "-A")
+        self.v.git("commit", "-q", "-m", "more")
+        self.v.git("update-ref", "refs/remotes/origin/main", "HEAD")
+        self.v.remove("concepts/beta two.md")
+        self.v.commit()
+        code, out = self.v.run()
+        self.assertEqual(code, 1, out)
+        self.assertIn("links [[beta two]], which this change removes", out)
+
+    def test_updated_matching_an_older_commit_passes(self):
+        self.v.write("concepts/gamma.md", dated_page("gamma", "Text.", DAYS_AGO))
+        self.v.commit(date=DAYS_AGO)
+        code, out = self.v.run()
+        self.assertEqual(code, 0, out)
+
+    def test_updated_older_than_the_commit_is_flagged(self):
+        self.v.write("concepts/gamma.md", dated_page("gamma", "Text.", "2026-01-02"))
+        self.v.commit(date=DAYS_AGO)
+        code, out = self.v.run()
+        self.assertEqual(code, 1, out)
+        self.assertIn(f"`updated: 2026-01-02` but last edited {DAYS_AGO}", out)
+
+    def test_a_mermaid_block_inside_a_callout_is_not_read_as_links(self):
+        body = "> [!note] Figure\n> ```mermaid\n> graph LR\n>   A[[subroutine]] --> B\n> ```"
+        self.v.write("concepts/gamma.md", page("gamma", body))
+        self.v.commit()
+        code, out = self.v.run()
+        self.assertEqual(code, 0, out)
+
+    def test_a_tilde_fence_is_not_read_as_links(self):
+        self.v.write("concepts/gamma.md", page("gamma", "~~~\n[[not-a-link]]\n~~~"))
+        self.v.commit()
+        code, out = self.v.run()
+        self.assertEqual(code, 0, out)
+
+    def test_a_link_after_a_closed_callout_fence_is_still_checked(self):
+        body = "> ```\n> [[inside]]\n> ```\n\nSee [[phantom]]."
+        self.v.write("concepts/gamma.md", page("gamma", body))
+        self.v.commit()
+        code, out = self.v.run()
+        self.assertEqual(code, 1, out)
+        self.assertIn("[[phantom]]", out)
+        self.assertNotIn("[[inside]]", out)
+
+    def test_frontmatter_closes_only_on_a_bare_dash_line(self):
+        text = (f"---\ntitle: gamma\ntype: concept\ncreated: 2026-01-01\n"
+                f"updated: {TODAY}\ntags: []\n----\n\nBody.\n")
+        self.v.write("concepts/gamma.md", text)
+        self.v.commit()
+        code, out = self.v.run()
+        self.assertEqual(code, 1, out)
+        self.assertIn("frontmatter block is not closed", out)
+
+    def test_a_one_line_triple_backtick_span_does_not_open_a_fence(self):
+        self.v.write("concepts/gamma.md", page("gamma", "```code``` is inline.\n\nSee [[phantom]]."))
+        self.v.commit()
+        code, out = self.v.run()
+        self.assertEqual(code, 1, out)
+        self.assertIn("[[phantom]]", out)
+
+    def test_a_rewritten_committer_date_does_not_age_the_edit(self):
+        self.v.write("concepts/gamma.md", dated_page("gamma", "Text.", DAYS_AGO))
+        self.v.git("add", "-A")
+        env = dict(os.environ, GIT_AUTHOR_DATE=f"{DAYS_AGO}T12:00:00",
+                   GIT_COMMITTER_DATE=f"{TODAY}T12:00:00")
+        subprocess.run(["git", "commit", "-q", "-m", "rebased"], cwd=self.v.dir,
+                       check=True, capture_output=True, env=env)
+        code, out = self.v.run()
+        self.assertEqual(code, 0, out)
+
+    def test_a_dotted_page_name_resolves(self):
+        self.v.write("concepts/v1.2-notes.md", page("v1.2-notes", "Text."))
+        self.v.write("concepts/gamma.md", page("gamma", "See [[v1.2-notes]] and [[alpha.md]]."))
+        self.v.commit()
+        code, out = self.v.run()
+        self.assertEqual(code, 0, out)
+
+    def test_deleting_a_dotted_page_finds_its_inbound_links(self):
+        self.v.write("concepts/v1.2-notes.md", page("v1.2-notes", "Text."))
+        self.v.write("concepts/alpha.md", page("alpha", "See [[beta]] and [[v1.2-notes]]."))
+        self.v.git("add", "-A")
+        self.v.git("commit", "-q", "-m", "more")
+        self.v.git("update-ref", "refs/remotes/origin/main", "HEAD")
+        self.v.remove("concepts/v1.2-notes.md")
+        self.v.commit()
+        code, out = self.v.run()
+        self.assertEqual(code, 1, out)
+        self.assertIn("links [[v1.2-notes]], which this change removes", out)
 
 
 if __name__ == "__main__":

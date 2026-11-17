@@ -11,7 +11,8 @@ each of which a script finds faster and more reliably:
   links        wikilinks that resolve to nothing. Fenced blocks are stripped first,
                because Mermaid's [[node]] shape is not a wikilink.
   embeds       ![[attachments/...]] pointing at a file that is not there.
-  updated      an entity page edited today whose `updated:` still says otherwise.
+  updated      a changed entity page whose `updated:` is older than its last edit
+               (the newest commit touching it, or today if it is uncommitted).
   inbound      links into a page this change set deletes or renames away from, and
                embeds of a non-page file it removes. The per-file check only opens
                changed files, so a reference *into* a removed thing sits in a file it
@@ -69,8 +70,11 @@ def no_frontmatter(path):
     introduced."""
     return path.name in NO_FRONTMATTER or path.parent == WIKI / "log"
 
-FENCE = re.compile(r"^```.*?^```", re.S | re.M)
 INLINE_CODE = re.compile(r"`[^`\n]+`")
+# A fence opener, inside any depth of blockquote or callout: `> ```mermaid` opens a
+# fence just as a column-0 ``` does, and Obsidian renders it as one. Tildes count.
+FENCE_OPEN = re.compile(r"^((?:[ \t]*>)*)[ \t]*(`{3,}|~{3,})")
+QUOTE_PREFIX = re.compile(r"^((?:[ \t]*>)*)")
 WIKILINK = re.compile(r"(?<!!)\[\[([^\]|#]+)")
 EMBED = re.compile(r"!\[\[([^\]|#]+)")
 
@@ -78,15 +82,36 @@ EMBED = re.compile(r"!\[\[([^\]|#]+)")
 def strip_fences(text):
     """Blank every fenced block and inline code span, keeping line numbering intact.
 
-    `FENCE.sub("", text)` deleted the block's newlines with it, so every line
-    number a sweep reported after a fence was short by the length of the fence: an
-    embed on line 12 of a page with a nine-line mermaid block was reported at line
-    8. The finding was true and its pointer sent the reader to the wrong line.
+    Line by line rather than one regex, for three shapes a column-0 ``` regex
+    missed: a fence inside a callout (`> ```mermaid`, where Mermaid's `A[[x]]`
+    subroutine shape read as a dead link), a `~~~` fence, and a quoted fence
+    that ends because the callout ends. Lines are blanked, never removed, so a
+    finding's line number still points at the right line. An unclosed fence runs
+    to the end of the file, as CommonMark renders it.
     """
-    text = FENCE.sub(lambda m: "\n" * m.group(0).count("\n"), text)
-    # Inline code spans too: `[[page-slug]]` in backticks is a documented example
-    # of the syntax, and Obsidian does not render it as a link either.
-    return INLINE_CODE.sub("", text)
+    out, fence = [], None
+    for line in text.split("\n"):
+        depth = QUOTE_PREFIX.match(line).group(1).count(">")
+        if fence is not None and fence[0] and depth < fence[0]:
+            fence = None  # the blockquote ended, so the fence inside it did too
+        m = FENCE_OPEN.match(line)
+        if m and m.group(2)[0] == "`" and fence is None and "`" in line[m.end():]:
+            m = None  # ```code``` on one line is inline code, not a fence opener
+        if fence is None:
+            if m:
+                fence = (m.group(1).count(">"), m.group(2)[0], len(m.group(2)))
+                out.append("")
+            else:
+                # `[[page-slug]]` in backticks is a documented example of the
+                # syntax, and Obsidian does not render it as a link either.
+                out.append(INLINE_CODE.sub("", line))
+            continue
+        q, ch, n = fence
+        if (m and m.group(1).count(">") == q and m.group(2)[0] == ch
+                and len(m.group(2)) >= n and not line[m.end():].strip()):
+            fence = None
+        out.append("")
+    return "\n".join(out)
 
 
 def changed_files():
@@ -94,14 +119,17 @@ def changed_files():
         base = subprocess.run(
             ["git", "merge-base", "HEAD", "origin/main"],
             cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
+        # NUL-separated throughout. Line or whitespace splitting dropped every path
+        # with a space, and git quotes a non-ASCII path ("caf\303\251.md") unless
+        # -z is set, so both kinds of page were silently left unchecked.
         out = subprocess.run(
-            ["git", "diff", "--name-only", f"{base}..HEAD"],
+            ["git", "diff", "--name-only", "-z", f"{base}..HEAD"],
             cwd=ROOT, capture_output=True, text=True, check=True).stdout
         staged = subprocess.run(
-            ["git", "diff", "--name-only", "HEAD"],
+            ["git", "diff", "--name-only", "-z", "HEAD"],
             cwd=ROOT, capture_output=True, text=True, check=True).stdout
         untracked = subprocess.run(
-            ["git", "ls-files", "-o", "--exclude-standard"],
+            ["git", "ls-files", "-o", "--exclude-standard", "-z"],
             cwd=ROOT, capture_output=True, text=True, check=True).stdout
     except (subprocess.CalledProcessError, OSError) as e:
         # Returning [] here made a broken repository indistinguishable from a clean
@@ -115,7 +143,7 @@ def changed_files():
         print(f"cannot determine the change set: {e}", file=sys.stderr)
         print("run with --all to audit the whole vault instead", file=sys.stderr)
         sys.exit(2)
-    names = set(out.split()) | set(staged.split()) | set(untracked.split())
+    names = {n for chunk in (out, staged, untracked) for n in chunk.split("\0") if n}
     return [ROOT / n for n in sorted(names)
             if n.startswith("wiki/") and n.endswith(".md")]
 
@@ -145,9 +173,9 @@ def removed_wiki_paths(findings):
     removed, which is the fail-open shape `changed_files` exits 2 over.
     """
     base = _merge_base()
-    ranges = [["git", "diff", "--name-status", "--diff-filter=DR", f"{base}..HEAD"]] if base else []
-    ranges += [["git", "diff", "--name-status", "--diff-filter=DR", "HEAD"],
-               ["git", "diff", "--name-status", "--diff-filter=DR", "--cached"]]
+    diff = ["git", "diff", "--name-status", "-z", "--diff-filter=DR"]
+    ranges = [diff + [f"{base}..HEAD"]] if base else []
+    ranges += [diff + ["HEAD"], diff + ["--cached"]]
     gone, ran, err = set(), False, None
     for cmd in ranges:
         try:
@@ -159,9 +187,12 @@ def removed_wiki_paths(findings):
         # One range succeeding is enough: `git diff HEAD` fails in a repository
         # with no commits while `--cached` answers, and that is not a broken repo.
         ran = True
-        for line in out.splitlines():
-            parts = line.split("\t")
-            old = parts[1] if len(parts) > 1 else ""
+        # -z output is a token stream: status, path for a deletion; status, old,
+        # new for a rename. A tab-split line parse lost quoted non-ASCII paths.
+        toks, i = out.split("\0"), 0
+        while i + 1 < len(toks) and toks[i]:
+            old = toks[i + 1]
+            i += 3 if toks[i][0] in "RC" else 2
             if old.startswith("wiki/"):
                 gone.add(old[len("wiki/"):])
     if not ran:
@@ -183,7 +214,7 @@ def gone_pages(removed):
     """
     # A rename that also re-created the stem elsewhere is not a loss either, and
     # that is a wider test than the path test in `removed_wiki_paths`.
-    stems = {pathlib.PurePath(g).stem for g in removed if g.endswith(".md")}
+    stems = {link_key(g) for g in removed if g.endswith(".md")}
     return {s for s in stems if s not in page_index()}
 
 
@@ -213,7 +244,7 @@ def check_inbound(stems, attachments, findings):
         for n, line in enumerate(text.splitlines(), 1):
             for target in WIKILINK.findall(line):
                 t = target.strip().rstrip("\\").strip()
-                if pathlib.PurePath(t).stem in stems:
+                if link_key(t) in stems:
                     findings.append((path, "inbound",
                                      f"line {n} links [[{t}]], which this change removes"))
             for target in EMBED.findall(line):
@@ -227,16 +258,27 @@ def all_files(wiki=WIKI):
     return sorted(p for p in wiki.rglob("*.md") if ".obsidian" not in p.parts)
 
 
+def link_key(target):
+    """The page name a wikilink target resolves by, or a page path's own name.
+
+    One normaliser for both sides of every comparison. The link check took the
+    last path component and the inbound sweep took the stem, so `[[v1.2-notes]]`
+    resolved in one and read as `v1` in the other, and `[[page.md]]` read as dead.
+    """
+    name = target.strip().rstrip("\\").strip().rsplit("/", 1)[-1]
+    return name[:-3] if name.lower().endswith(".md") else name
+
+
 def page_index(wiki=WIKI):
-    """basename -> exists, for wikilink resolution."""
-    return {p.stem for p in wiki.rglob("*.md")}
+    """Page names that exist, for wikilink resolution."""
+    return {link_key(p.name) for p in wiki.rglob("*.md")}
 
 
 def check_required_fm(path, findings):
     if no_frontmatter(path):
         return
     text = path.read_text(encoding="utf-8", errors="replace")
-    if not frontmatter(text):
+    if fm_bounds(text)[0] != "ok":
         return          # no readable block at all is check_frontmatter's finding
     for key in REQUIRED_FM:
         got = fm_field(text, key)
@@ -251,16 +293,16 @@ def check_frontmatter(path, findings):
     if no_frontmatter(path):
         return
     text = path.read_text(encoding="utf-8", errors="replace")
-    if not text.startswith("---"):
+    state, block = fm_bounds(text)
+    if state == "none":
         findings.append((path, "frontmatter", "no YAML frontmatter block"))
         return
-    end = text.find("\n---", 3)
-    if end == -1:
+    if state == "open":
         findings.append((path, "frontmatter", "frontmatter block is not closed"))
         return
     try:
         import yaml
-        yaml.safe_load(text[3:end])
+        yaml.safe_load(block)
     except Exception as exc:  # noqa: BLE001 - we want the parser's own message
         first = str(exc).splitlines()[0]
         findings.append((path, "frontmatter", f"does not parse: {first}"))
@@ -278,21 +320,44 @@ def check_links(path, stems, findings, wiki=WIKI):
     for target in {clean(t) for t in WIKILINK.findall(text)}:
         if target.startswith("attachments/"):
             continue
-        if pathlib.PurePath(target).name not in stems:
+        if link_key(target) not in stems:
             findings.append((path, "link", f"[[{target}]] resolves to nothing"))
     for target in {clean(t) for t in EMBED.findall(text)}:
         if not (wiki / target).exists():
             findings.append((path, "embed", f"![[{target}]] is missing"))
 
 
-def check_updated(path, findings):
+def last_edited(path, base):
+    """The date this change set last touched a page: today if it has uncommitted
+    changes, else the author date of the newest commit since `base` touching it (the author
+    date survives a rebase or amend, the committer date does not).
+
+    Comparing against today flagged every page on a branch older than a day, and
+    the baseline cannot waive an `updated` finding. Any git failure answers today,
+    which is the stricter reading, never a silent pass.
+    """
+    today = datetime.date.today().isoformat()
+    rel = path.relative_to(ROOT).as_posix()
+    try:
+        dirty = subprocess.run(["git", "status", "--porcelain", "-z", "--", rel],
+                               cwd=ROOT, capture_output=True, text=True, check=True).stdout
+        if dirty or not base:
+            return today
+        when = subprocess.run(["git", "log", "-1", "--format=%as", f"{base}..HEAD", "--", rel],
+                              cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
+    except (subprocess.CalledProcessError, OSError):
+        return today
+    return when or today
+
+
+def check_updated(path, findings, edited=None):
     if no_frontmatter(path):
         return
     text = path.read_text(encoding="utf-8", errors="replace")
     got = fm_date(text, "updated")
-    today = datetime.date.today().isoformat()
-    if got and got != today:
-        findings.append((path, "updated", f"`updated: {got}` but edited today"))
+    edited = edited or datetime.date.today().isoformat()
+    if got and got < edited:
+        findings.append((path, "updated", f"`updated: {got}` but last edited {edited}"))
 
 
 def claim_sweep(phrase):
@@ -317,15 +382,30 @@ def claim_sweep(phrase):
 # file returns the first match, which is the right one only while the key is present
 # above the body. A page that shows `created:` or `type:` inside a fenced example would
 # otherwise have the example value swapped into a check the moment its real key goes.
+def fm_bounds(text):
+    """("ok", block) | ("none", "") | ("open", "") for the frontmatter at the top.
+
+    The block opens on a first line that is exactly `---` and closes on the next
+    line that is exactly `---` (or YAML's `...`). Searching for the substring
+    `\n---` closed it on `----`, on `---x`, or on anything else that merely
+    starts with three dashes.
+    """
+    lines = text.split("\n")
+    if not lines or lines[0].rstrip() != "---":
+        return "none", ""
+    for i in range(1, len(lines)):
+        if lines[i].rstrip() in ("---", "..."):
+            return "ok", "\n".join(lines[1:i])
+    return "open", ""
+
+
 def frontmatter(text):
-    if not text.startswith("---"):
-        return ""
-    end = text.find("\n---", 3)
     # An unclosed block returns nothing, not the whole document. Returning the
-    # document reinstated the unbounded read this function exists to prevent, which
-    # is the guard-fails-open class inside the guard. A page whose frontmatter never
-    # closes has no readable frontmatter, and `check_frontmatter` reports it.
-    return "" if end < 0 else text[:end]
+    # document would reinstate the unbounded read this function exists to prevent.
+    # A page whose frontmatter never closes has no readable frontmatter, and
+    # `check_frontmatter` reports it.
+    state, block = fm_bounds(text)
+    return block if state == "ok" else ""
 
 
 def fm_field(text, key):
@@ -534,8 +614,9 @@ def main():
     removed = removed_wiki_paths(findings)
     check_inbound(gone_pages(removed), gone_attachments(removed), findings)
     if not args.all:
+        base_sha = _merge_base()
         for p in paths:
-            check_updated(p, findings)
+            check_updated(p, findings, last_edited(p, base_sha))
 
     with tempfile.TemporaryDirectory(prefix="preflight-base-") as scratch:
         base, inherited, base_note = None, [], None

@@ -50,6 +50,16 @@ def git(*args):
     return res.stdout if res.returncode == 0 else None
 
 
+def is_page(path):
+    """A repo-relative wiki page: under wiki/, `.md`, not a `*.pyramid.md` sidecar,
+    and not inside a hidden directory (.obsidian, .smart-env, .trash). The tree walk
+    and the diff both use this, so the two counts cannot disagree on what a page is."""
+    parts = pathlib.PurePosixPath(path).parts
+    return (len(parts) > 1 and parts[0] == "wiki" and path.endswith(".md")
+            and not path.endswith(".pyramid.md")
+            and not any(s.startswith(".") for s in parts[1:]))
+
+
 def wiki_pages(rev):
     """Repo-relative wiki/*.md paths at a rev, or on disk when rev is None.
 
@@ -60,12 +70,9 @@ def wiki_pages(rev):
     """
     if rev:
         out = git("ls-tree", "-r", "-z", "--name-only", rev, "wiki/") or ""
-        return [p for p in out.split("\0")
-                if p.endswith(".md") and not p.endswith(".pyramid.md")
-                and not any(s.startswith(".") for s in p.split("/"))]
-    return [str(p.relative_to(ROOT)) for p in sorted(WIKI.rglob("*.md"))
-            if not p.name.endswith(".pyramid.md")
-            and not any(s.startswith(".") for s in p.relative_to(WIKI).parts)]
+        return [p for p in out.split("\0") if is_page(p)]
+    return [p for p in (p.relative_to(ROOT).as_posix() for p in sorted(WIKI.rglob("*.md")))
+            if is_page(p)]
 
 
 @functools.lru_cache(maxsize=None)
@@ -79,12 +86,17 @@ def read_page(path, rev):
 
 def fm_field(text, name):
     """A scalar frontmatter field, by regex on the block — no yaml dependency."""
-    if text is None or not text.startswith("---"):
+    if text is None:
         return None
-    end = text.find("\n---", 3)
-    if end == -1:
+    # The block closes on the next line that is exactly `---` (or `...`), the same
+    # rule as preflight.py; a `\n---` substring search also closed it on `----`.
+    lines = text.split("\n")
+    if not lines or lines[0].rstrip() != "---":
         return None
-    m = re.search(rf"^{name}:[ \t]*['\"]?([^'\"\n]+)", text[3:end], re.M)
+    end = next((i for i in range(1, len(lines)) if lines[i].rstrip() in ("---", "...")), None)
+    if end is None:
+        return None
+    m = re.search(rf"^{name}:[ \t]*['\"]?([^'\"\n]+)", "\n".join(lines[1:end]), re.M)
     return m.group(1).strip() if m else None
 
 
@@ -147,6 +159,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", help="base rev (default: merge-base of HEAD and origin/main)")
     ap.add_argument("--head", help="head rev (default: the working tree)")
+    ap.add_argument("--verbose", action="store_true",
+                    help="list every question page not ruminated this pass")
     args = ap.parse_args()
 
     base = args.base or (git("merge-base", "HEAD", "origin/main") or "").strip()
@@ -184,13 +198,16 @@ def main():
           + (f", plus {len(new)} new (not counted as ruminated)" if new else ""))
     for p in new:
         print(f"  new        {p}")
-    for p, d in fresh:
-        print(f"  unchanged  {d or '(no last-ruminated)'}  {p}")
+    if args.verbose:
+        for p, d in fresh:
+            print(f"  unchanged  {d or '(no last-ruminated)'}  {p}")
+    elif fresh:
+        print(f"  ({len(fresh)} unchanged; --verbose lists them)")
 
     moves = []
     for st, old, p in rows:
-        if dir_of(p) != "questions" and dir_of(old) != "questions":
-            continue
+        if not any(is_page(x) and dir_of(x) == "questions" for x in (p, old)):
+            continue  # a questions/ folder outside wiki/ is not a question page
         if st not in ("M", "R") or not p.endswith(".md"):
             continue
         was = fm_field(read_page(old, base), "status")
@@ -202,8 +219,7 @@ def main():
 
     wiki_md = []
     for st, old, p in rows:
-        new_in = p.startswith("wiki/") and p.endswith(".md")
-        old_in = old.startswith("wiki/") and old.endswith(".md")
+        new_in, old_in = is_page(p), is_page(old)
         if st == "R" and old_in and not new_in:
             wiki_md.append(("D", old, old))   # renamed out of wiki/ = a wiki deletion
         elif new_in:
