@@ -276,7 +276,7 @@ def check_required_fm(path, findings):
     if no_frontmatter(path):
         return
     text = path.read_text(encoding="utf-8", errors="replace")
-    if not frontmatter(text):
+    if fm_bounds(text)[0] != "ok":
         return          # no readable block at all is check_frontmatter's finding
     for key in REQUIRED_FM:
         got = fm_field(text, key)
