@@ -2,7 +2,7 @@
 title: EA-discipline domains — coverage taxonomy
 type: reference
 created: 2026-06-05
-updated: 2026-06-05
+updated: 2026-11-17
 tags: [taxonomy, domains]
 ---
 
@@ -45,47 +45,47 @@ For each domain: linked question page, analyses (if any), and key frameworks/con
 > _Empty on a fresh foundation. The first `lint` after content lands populates this section and rebuilds [[coverage]]._
 
 ### 1. `#domain:strategy`
-- Question: [[domain-strategy]]
+- Question: _(none yet; expected at `questions/domain-strategy.md`)_
 - Analyses: _(none yet)_
 - Frameworks / Concepts / Sources: _(none yet)_
 
 ### 2. `#domain:enterprise-architecture`
-- Question: [[domain-enterprise-architecture]]
+- Question: _(none yet; expected at `questions/domain-enterprise-architecture.md`)_
 
 ### 3. `#domain:business-architecture`
-- Question: [[domain-business-architecture]]
+- Question: _(none yet; expected at `questions/domain-business-architecture.md`)_
 
 ### 4. `#domain:business-to-it`
-- Question: [[domain-business-to-it]]
+- Question: _(none yet; expected at `questions/domain-business-to-it.md`)_
 
 ### 5. `#domain:software-architecture`
-- Question: [[domain-software-architecture]]
+- Question: _(none yet; expected at `questions/domain-software-architecture.md`)_
 
 ### 6. `#domain:solution-delivery`
-- Question: [[domain-solution-delivery]]
+- Question: _(none yet; expected at `questions/domain-solution-delivery.md`)_
 
 ### 7. `#domain:data`
-- Question: [[domain-data]]
+- Question: _(none yet; expected at `questions/domain-data.md`)_
 
 ### 8. `#domain:tech-infra-cloud`
-- Question: [[domain-tech-infra-cloud]]
+- Question: _(none yet; expected at `questions/domain-tech-infra-cloud.md`)_
 
 ### 9. `#domain:exponential-tech-innovation`
-- Question: [[domain-exponential-tech-innovation]]
+- Question: _(none yet; expected at `questions/domain-exponential-tech-innovation.md`)_
 
 ### 10. `#domain:security`
-- Question: [[domain-security]]
+- Question: _(none yet; expected at `questions/domain-security.md`)_
 
 ### 11. `#domain:governance`
-- Question: [[domain-governance]]
+- Question: _(none yet; expected at `questions/domain-governance.md`)_
 
 ### 12. `#domain:organizational-change`
-- Question: [[domain-organizational-change]]
+- Question: _(none yet; expected at `questions/domain-organizational-change.md`)_
 
 ---
 
 ## Related
 
-- [[CLAUDE]]: operating manual; the authoritative spec
+- `CLAUDE.md` (repo root, outside the vault): operating manual; the authoritative spec
 - [[coverage]]: materialised coverage matrix across these domains
 - [[index]]: wiki catalog

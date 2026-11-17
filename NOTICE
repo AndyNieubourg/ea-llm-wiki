@@ -156,7 +156,10 @@ as those licenses require.
 The repository's own work, under this project's Apache-2.0 license, is: the
 operating manual (CLAUDE.md), the directory structure / workflows / taxonomy,
 the small Obsidian config (which plugins to enable, PlantUML SVG/local-JAR
-settings), the `init-wiki` skill, the `pr-manager` agent, the
+settings), the four workflow skills (`ingest`, `capture`, `query`, `lint`),
+the diagram rules file (.claude/rules/diagrams.md), the `scripts/` checks
+(preflight.py, lint-aggregates.py and their tests), the `init-wiki` skill,
+the `pr-manager` agent, the
 `voice-interview` skill (co-authored by the owner with LLM assistance and
 informed by public guidance on writing with LLMs; no third-party source is
 redistributed in it), the `critical-reviewer` skill (owner-authored;

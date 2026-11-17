@@ -204,8 +204,9 @@ fi
 # ===========================================================================
 # 6. Obsidian Agent Skills (kepano/obsidian-skills, MIT) — NOT redistributed
 #    here; cloned into .claude/skills/ (gitignored). The committed skills
-#    (init-wiki, voice-interview, voice-draft, voice-edit, deep-recon,
-#    critical-reviewer, diagram-syntax, pyramid-structure) are left untouched.
+#    (ingest, capture, query, lint, init-wiki, voice-interview, voice-draft,
+#    voice-edit, deep-recon, critical-reviewer, diagram-syntax,
+#    pyramid-structure) are left untouched.
 # ===========================================================================
 if [[ "$SKIP_SKILLS" -eq 1 ]]; then
   info "Obsidian skills — skipped (--skip-skills)"

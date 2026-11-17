@@ -2,7 +2,7 @@
 title: Domain coverage — materialised scan across the EA-discipline domains
 type: reference
 created: 2026-06-05
-updated: 2026-06-05
+updated: 2026-11-17
 tags: [coverage, lint-output, materialised]
 ---
 
@@ -11,13 +11,13 @@ Materialised output of `lint`'s domain-coverage scan. Rebuilt each lint pass; do
 `coverage.base` is the live companion to this page: it gives filterable, per-page exploration across the domains (one view per domain, plus cross-domain-bridge and stale-page views), whereas this `.md` holds the synthesised cross-domain metrics. The `.base` is owned and re-serialised by Obsidian's Bases plugin — edit its views in Obsidian, not by hand.
 
 > [!note] Empty on a fresh foundation
-> No content has been ingested yet, so there is nothing to scan. The first `lint` after pages land will populate the matrix below. The thresholds are defaults from [[CLAUDE]] and should be re-tuned once the corpus is large enough to show a real distribution.
+> No content has been ingested yet, so there is nothing to scan. The first `lint` after pages land will populate the matrix below. The thresholds are defaults from the `lint` skill (`.claude/skills/lint/SKILL.md`) and should be re-tuned once the corpus is large enough to show a real distribution.
 
 **Scan run:** _(not yet run)_
 
 ---
 
-## Thresholds (canonical, per [[CLAUDE]])
+## Thresholds (canonical, per the `lint` skill)
 
 Contributing pages = unique pages across `concepts/`, `sources/`, `frameworks/`, `analyses/`, `cases/`, `artifacts/` carrying the `#domain:<name>` tag.
 
@@ -54,4 +54,4 @@ Re-tune the thresholds once the corpus shows a stable distribution (look at the 
 ## Related
 
 - [[domains]]: canonical taxonomy and per-domain scope
-- [[CLAUDE]]: operating manual; the authoritative spec
+- `CLAUDE.md` (repo root, outside the vault): operating manual; the authoritative spec

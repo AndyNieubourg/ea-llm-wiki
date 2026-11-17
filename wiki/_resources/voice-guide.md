@@ -2,7 +2,7 @@
 title: Voice Guide (template)
 type: reference
 created: 2026-06-05
-updated: 2026-06-05
+updated: 2026-11-17
 tags: [voice, style, recon-anchor, lint-reference, template]
 ---
 
@@ -141,7 +141,7 @@ The guide above is the best-case voice. When tired or rushed, writing degrades i
 When producing voiced output destined for this wiki:
 
 1. **Use `[[wikilinks]]`** for vault references; named-author citations with footnotes for external sources.
-2. **Honour source-first** ([[CLAUDE]]): anchor reasoning to a `sources/` page; if none exists, flag rather than fabricate.
+2. **Honour source-first** (`CLAUDE.md`): anchor reasoning to a `sources/` page; if none exists, flag rather than fabricate.
 3. **Observation vs invention.** State only what the source says or the wiki contains. Don't declare *"the most important feature"* the author didn't, or perform close readings they didn't put there.
 4. **English only**, regardless of source language. Translate roles, headings, and column labels; keep file paths and document titles verbatim (they're addresses, not prose).
 
@@ -177,6 +177,6 @@ Any "no" is a rewrite:
 
 ## Related
 
-- [[CLAUDE]]: operating manual; the authoritative spec
+- `CLAUDE.md` (repo root, outside the vault): operating manual; the authoritative spec
 - [[index]]: wiki catalog
 - [[overview]]: current synthesis state of the wiki
