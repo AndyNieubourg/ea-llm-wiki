@@ -1,6 +1,6 @@
 # EA LLM Wiki — foundation
 
-A reusable scaffold for an **enterprise architect's personal knowledge base**, maintained in the [Karpathy LLM-wiki tradition](https://gist.github.com/karpathy/1dd0294ef9567971c1e4348a90d69285): low-friction notes that compound through re-reading and re-asking, written and maintained by an LLM agent ([Claude Code](https://claude.com/claude-code)) against a single operating manual, [`CLAUDE.md`](CLAUDE.md).
+A reusable scaffold for an **enterprise architect's personal knowledge base**, maintained in the [Karpathy LLM-wiki tradition](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f): low-friction notes that compound through re-reading and re-asking, written and maintained by an LLM agent ([Claude Code](https://claude.com/claude-code)) against a single operating manual, [`CLAUDE.md`](CLAUDE.md).
 
 This repo is the **starting point**, not a finished wiki. It ships the structure, the four workflows, the EA-discipline domain taxonomy, the Obsidian vault config, the skills, and a voice-guide template — but no content, and no owner. You make it yours by running the initialisation interview once.
 
@@ -185,7 +185,7 @@ sh .claude/hooks/guard-raw.test.sh
 
 ## Lineage
 
-Built on [Andrej Karpathy's LLM wiki pattern](https://gist.github.com/karpathy/1dd0294ef9567971c1e4348a90d69285), via [Balu Kosuri's scaffolding](https://github.com/balukosuri/llm-wiki-karpathy). This foundation specialises the pattern for **enterprise architects**: the EA-discipline domain taxonomy, ArchiMate/C4 diagram support, a business-deliverable voice guide, and the four-workflow operating manual. The ethos — atomic notes, dense linking, lint-driven compounding — is unchanged.
+Built on [Andrej Karpathy's LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), via [Balu Kosuri's scaffolding](https://github.com/balukosuri/llm-wiki-karpathy). This foundation specialises the pattern for **enterprise architects**: the EA-discipline domain taxonomy, ArchiMate/C4 diagram support, a business-deliverable voice guide, and the four-workflow operating manual. The ethos — atomic notes, dense linking, lint-driven compounding — is unchanged.
 
 ## License
 
