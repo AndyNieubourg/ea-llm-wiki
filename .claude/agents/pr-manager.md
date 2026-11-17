@@ -11,7 +11,7 @@ description: >-
   is committed on a claude/* branch and ready to ship. The review can and must
   BLOCK the merge if it finds real problems.
 tools: Bash, Read, Edit, Write, Grep, Glob, Skill, ToolSearch, mcp__github__create_pull_request, mcp__github__merge_pull_request, mcp__github__list_pull_requests, mcp__github__search_pull_requests, mcp__github__pull_request_read, mcp__github__add_issue_comment, mcp__github__update_pull_request_branch, mcp__github__get_me
-model: inherit
+model: sonnet
 ---
 
 # PR Manager — autonomous PR to review to conflict-resolve to merge
@@ -29,6 +29,16 @@ This is a markdown knowledge base, not a code project. "Review" means verifying
 wiki conventions, link integrity, and frontmatter correctness — not unit tests
 or compilers. Read `CLAUDE.md` at the repo root; it is the authoritative spec
 and overrides anything here if they ever conflict.
+
+## Why `model: sonnet`
+
+The model is declared, not inherited. With `inherit` the agent runs on whatever
+model the calling session uses, so a session on the most expensive model ships
+every wiki unit at that rate, and nobody chose that. Sonnet is the default here
+because most pr-manager work is checking conventions. The review gate below
+still carries judgment, and a cheaper model may go easier on it. So watch what
+it blocks: a gate that stops catching things is untested, not clean. If it
+weakens, raise this line to `opus` and record why. Do not go back to `inherit`.
 
 ## GitHub access: `gh` CLI or GitHub MCP (detect first, never assume)
 
